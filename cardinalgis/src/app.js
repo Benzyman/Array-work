@@ -138,7 +138,7 @@ function toKml(sites, areas) {
       return `    <Placemark><name>${xml(a.name)}</name><description>${xml(desc(a, ['licence_type', 'licence_no', 'holder', 'mineral', 'area_ha', 'state', 'lga', 'notes']))}</description><Polygon>${rings}</Polygon></Placemark>`;
     }),
   ];
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n  <Document>\n    <name>Nigeria Mining Map export</name>\n${placemarks.join('\n')}\n  </Document>\n</kml>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n  <Document>\n    <name>CardinalGIS export</name>\n${placemarks.join('\n')}\n  </Document>\n</kml>\n`;
 }
 
 function toGeoJson(sites, areas) {
@@ -330,15 +330,15 @@ function createApp({ db, editorToken = '' } = {}) {
   const stamp = () => new Date().toISOString().slice(0, 10);
 
   api.get('/export/csv', (req, res) => {
-    res.type('text/csv').attachment(`nigeria-mining-sites-${stamp()}.csv`).send(sitesToCsv(listSites(req.query)));
+    res.type('text/csv').attachment(`cardinalgis-sites-${stamp()}.csv`).send(sitesToCsv(listSites(req.query)));
   });
 
   api.get('/export/geojson', (req, res) => {
-    res.type('application/geo+json').attachment(`nigeria-mining-${stamp()}.geojson`).send(JSON.stringify(toGeoJson(listSites(req.query), listAreas()), null, 2));
+    res.type('application/geo+json').attachment(`cardinalgis-${stamp()}.geojson`).send(JSON.stringify(toGeoJson(listSites(req.query), listAreas()), null, 2));
   });
 
   api.get('/export/kml', (req, res) => {
-    res.type('application/vnd.google-earth.kml+xml').attachment(`nigeria-mining-${stamp()}.kml`).send(toKml(listSites(req.query), listAreas()));
+    res.type('application/vnd.google-earth.kml+xml').attachment(`cardinalgis-${stamp()}.kml`).send(toKml(listSites(req.query), listAreas()));
   });
 
   api.use((req, res) => res.status(404).json({ error: 'Not found' }));
@@ -349,6 +349,9 @@ function createApp({ db, editorToken = '' } = {}) {
   app.use('/vendor/leaflet', express.static(path.join(ROOT, 'node_modules', 'leaflet', 'dist')));
   app.use('/vendor/leaflet-draw', express.static(path.join(ROOT, 'node_modules', 'leaflet-draw', 'dist')));
   app.use('/vendor/proj4', express.static(path.join(ROOT, 'node_modules', 'proj4', 'dist')));
+  app.use('/vendor/inter', express.static(path.join(ROOT, 'node_modules', '@fontsource-variable', 'inter', 'files')));
+  // The service worker must never be served stale, or app updates would not reach users.
+  app.get('/sw.js', (req, res, next) => { res.set('Cache-Control', 'no-cache'); next(); });
   app.use(express.static(path.join(ROOT, 'public')));
 
   // Error handler: validation problems -> 400, bad JSON -> 400, anything else -> 500.

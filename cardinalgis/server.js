@@ -14,7 +14,7 @@ const db = openDatabase(path.join(DATA_DIR, 'mining.db'));
 const app = createApp({ db, editorToken: EDITOR_TOKEN });
 
 app.listen(PORT, () => {
-  console.log(`Nigeria Mining Map running at http://localhost:${PORT}`);
+  console.log(`CardinalGIS running at http://localhost:${PORT}`);
   console.log(`Database: ${path.join(DATA_DIR, 'mining.db')}`);
   console.log(EDITOR_TOKEN ? 'Editing is protected by EDITOR_TOKEN.' : 'WARNING: EDITOR_TOKEN not set — anyone can edit data.');
 });

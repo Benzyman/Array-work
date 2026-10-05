@@ -1,10 +1,10 @@
 # Render "Blueprint": in the Render dashboard choose New → Blueprint and
-# point it at this repository. See BUILD_GUIDE.md, step 10.
+# point it at this repository. See cardinalgis/BUILD_GUIDE.md, step 10.
 services:
   - type: web
-    name: nigeria-mining-map
+    name: cardinalgis
     runtime: node
-    rootDir: mining-map
+    rootDir: cardinalgis
     plan: starter          # a persistent disk needs a paid plan
     buildCommand: npm ci --omit=dev
     startCommand: npm start

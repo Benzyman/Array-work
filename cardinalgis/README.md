@@ -1,6 +1,6 @@
-# Nigeria Mining Map
+# CardinalGIS
 
-A web platform for recording **mining coordinates and field mapping data across Nigeria**:
+**CardinalGIS** is an installable web app for recording **mining coordinates and field mapping data across Nigeria**:
 mine sites, pits, sample points, boreholes, beacons and **licence / lease boundaries**, shown on
 an interactive map. It only accepts locations inside Nigeria.
 
@@ -11,7 +11,10 @@ an interactive map. It only accepts locations inside Nigeria.
 
 | Area | What you can do |
 |---|---|
-| **Map** | Streets, satellite and terrain base maps, locked to Nigeria with everything outside greyed out. Live cursor readout in lat/lng, DMS, UTM and Minna belt coordinates. Scale bar and mineral legend. |
+| **Look and feel** | A clean interface with light and dark themes, an icon navigation rail, a floating coordinate readout and a north arrow. On phones it switches to a bottom tab bar with a slide-up panel and a centre crosshair. |
+| **Install as an app** | Install it on Android, iPhone, Windows or Mac. It gets its own icon and window, and the app shell opens even with a weak signal. |
+| **Go to coordinate** | Type `9.0579, 7.4951` or `9°03'28"N 7°29'42"E` in the top search bar to jump there, then add a site at that spot in one tap. |
+| **Map** | Light, streets, satellite, terrain and dark base maps, locked to Nigeria with everything outside greyed out. Live cursor readout in lat/lng, DMS, UTM and Minna belt coordinates. Scale bar and mineral legend. |
 | **Sites (points)** | Add by clicking the map, typing coordinates, or using your phone's GPS (accuracy and elevation are saved). Type, mineral, status, surveyor, date, notes. Search and filter by state and mineral. |
 | **Nigeria-only** | Every coordinate is checked on the server. Points outside Nigeria are rejected. State and LGA are filled in automatically. |
 | **Coordinate systems** | WGS84 decimal degrees and DMS, UTM zones 31N/32N/33N, Minna / UTM 31N/32N, and the Minna Nigeria West, Mid and East belts (NTM). Converter tab for quick conversions. |
@@ -27,12 +30,19 @@ an interactive map. It only accepts locations inside Nigeria.
 You need **Node.js 22.13 or newer** ([nodejs.org](https://nodejs.org)).
 
 ```bash
-cd mining-map
+cd cardinalgis
 npm install
 npm start
 ```
 
 Open <http://localhost:3000>. Try **Data → Import sites from CSV** with `samples/sample-sites.csv`.
+
+### Install it as an app
+- **Chrome or Edge on a computer:** click **Install** in the top bar, or the install icon in the address bar.
+- **Android (Chrome):** menu ⋮ → **Install app** (or **Add to Home screen**).
+- **iPhone (Safari):** Share → **Add to Home Screen**.
+
+Installing works on `localhost`, and on any site served over **HTTPS** (every host in the build guide gives you HTTPS).
 
 Run the automated tests with `npm test`.
 
@@ -47,7 +57,7 @@ Run the automated tests with `npm test`.
 ## Project layout
 
 ```
-mining-map/
+cardinalgis/
 ├── server.js              starts the web server
 ├── src/
 │   ├── app.js             API routes, validation, exports
@@ -58,7 +68,10 @@ mining-map/
 │   ├── nigeria-boundary.geojson   national outline
 │   └── nigeria-admin.json         37 states + 774 LGAs (centres and bounding boxes)
 ├── public/                the website (HTML, CSS, JS)
-│   └── js/coords.js       coordinate systems and conversions
+│   ├── js/app.js          map, forms, drawing, import/export
+│   ├── js/coords.js       coordinate systems and conversions
+│   ├── manifest.webmanifest + sw.js   make it an installable app
+│   └── icons/             logo and app icons
 ├── test/                  automated tests (node:test)
 ├── samples/               sample CSV for practice
 └── Dockerfile             container image for deployment
@@ -93,4 +106,7 @@ All responses are JSON. Writes need `Authorization: Bearer <EDITOR_TOKEN>` when 
 
 - National outline: Natural Earth via [johan/world.geo.json](https://github.com/johan/world.geo.json) (public domain).
 - States and LGAs: [`@some19ice/nigeria-geo-core`](https://www.npmjs.com/package/@some19ice/nigeria-geo-core) (MIT).
-- Map tiles: © OpenStreetMap contributors, Esri World Imagery, OpenTopoMap.
+- Map tiles: © OpenStreetMap contributors, CARTO, Esri World Imagery, OpenTopoMap. The free CARTO and
+  OpenStreetMap tile services have fair-use limits. For heavy commercial use, get a tile provider
+  key (for example MapTiler or Stadia) and swap the URLs in `public/js/app.js`.
+- Font: Inter (SIL Open Font License), served from the app itself.

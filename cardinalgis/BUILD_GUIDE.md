@@ -1,4 +1,4 @@
-# How the Nigeria Mining Map was built: a step-by-step guide
+# How CardinalGIS was built: a step-by-step guide
 
 This guide walks through how the platform was built, in the order it was built. By the end you
 should be able to rebuild it yourself, change it, and put it online.
@@ -56,9 +56,9 @@ A web platform has two halves:
 ## Step 2: Create the project
 
 ```bash
-mkdir mining-map && cd mining-map
+mkdir cardinalgis && cd cardinalgis
 npm init -y                                  # creates package.json
-npm install express@4 leaflet leaflet-draw proj4
+npm install express@4 leaflet leaflet-draw proj4 @fontsource-variable/inter
 ```
 
 - `package.json` lists your dependencies and **scripts**. We added:
@@ -284,6 +284,51 @@ to `/api/sites/bulk`. The server saves the good rows and reports the bad ones by
 
 ---
 
+## Step 8½: Design and branding (the CardinalGIS look)
+
+The first version worked, but it looked plain. The redesign was all CSS and HTML. Nothing in
+the server changed.
+
+1. **Brand:** the name *Cardinal* refers to the cardinal directions (N, E, S, W) and to
+   cardinal red. The logo (`public/icons/logo.svg`) is a compass rose with a red north point.
+   It's an SVG, so it stays sharp at any size.
+2. **Design tokens:** every colour, radius and shadow is a CSS variable at the top of
+   `style.css` (`--brand`, `--surface`, `--border` and so on). Change `--brand` once and the
+   whole app follows.
+3. **Dark mode:** the same variables are redefined for dark mode, both automatically
+   (`prefers-color-scheme`) and when you press the moon/sun button, which sets
+   `data-theme="dark"` on `<html>`. A tiny `js/theme.js` in the `<head>` applies the saved
+   choice before the page draws, so there's no white flash.
+4. **Layout:** an icon *rail* (Sites, Areas, Convert, Data), a panel, and a full-height map. On
+   phones, CSS media queries turn the rail into a bottom tab bar and the panel into a slide-up
+   sheet.
+5. **Icons:** a hidden SVG *sprite* in `index.html` defines each icon once
+   (`<symbol id="i-pin">`), and buttons reuse it with `<svg><use href="#i-pin"/></svg>`.
+   There's no icon font or extra downloads.
+6. **Font:** Inter, installed from npm and served by our own server, so it works on networks
+   that block Google Fonts.
+7. **Small details that make it feel professional:** cards with a coloured mineral bar, status
+   chips, empty states that explain what to do, a pulsing dot while a tool is active,
+   animated dialogs, and a coordinate HUD in a monospaced font.
+
+## Step 8¾: Make it an installable app (PWA)
+
+A **Progressive Web App** is a website that phones and computers can install like a normal app.
+It needs three things:
+
+1. **`public/manifest.webmanifest`**: the app's name, colours and icons. Link it from the page
+   with `<link rel="manifest" href="/manifest.webmanifest">`.
+2. **App icons**: PNGs at 192 and 512 px, plus a *maskable* icon (logo inside a safe zone, for
+   Android's round and squircle masks) and an `apple-touch-icon` for iPhone. They were
+   rendered from the SVG logo with a headless browser.
+3. **`public/sw.js`**: a **service worker**, a script the browser runs in the background. Ours
+   saves the app's own files (page, CSS, JS, font) and serves them when the network is down.
+   It never caches `/api/...` data, so you always see live records. The server sends it with
+   `Cache-Control: no-cache` so that updates reach users.
+
+`app.js` registers the worker, and it listens for the browser's `beforeinstallprompt` event
+to show the **Install** button.
+
 ## Step 9: Testing
 
 Run `npm test`. The tests use Node's built-in runner (`node:test`), so there's nothing to install.
@@ -310,11 +355,13 @@ You need a host that runs Node.js **and keeps the database file** between restar
 1. Push your code to GitHub.
 2. Go to <https://render.com>, sign up with GitHub, then choose **New → Blueprint** and pick
    your repo. The `render.yaml` at the repository root sets everything up: the Node web
-   service in `mining-map/`, a 1 GB persistent disk at `/var/data`, and a random
+   service in `cardinalgis/`, a 1 GB persistent disk at `/var/data`, and a random
    `EDITOR_TOKEN`.
 3. When it's live, open the service's **Environment** tab, copy `EDITOR_TOKEN`, and paste it into
    the app under **Data → Editor key**.
-4. Your site is at `https://nigeria-mining-map.onrender.com` (or similar) with HTTPS included.
+4. Your site is at `https://cardinalgis.onrender.com` (or similar) with HTTPS included.
+5. Open that link on your phone and choose **Install app** or **Add to Home Screen**.
+   CardinalGIS now sits on your home screen like any other app.
 
 > A free Render web service works too, but it has **no persistent disk**, so data is wiped on
 > every restart or redeploy. That's fine for a demo, but not for real data.
@@ -326,10 +373,10 @@ Dockerfile sets `DATA_DIR=/data`) and set `EDITOR_TOKEN`.
 ### Option C: Your own VPS (DigitalOcean, Hetzner, AWS Lightsail, or a Nigerian provider)
 ```bash
 # on the server, with Docker installed
-git clone <your repo> && cd <repo>/mining-map
-docker build -t mining-map .
-docker run -d --restart=always -p 3000:3000 -v mining-data:/data \
-  -e EDITOR_TOKEN='choose-a-long-random-key' --name mining-map mining-map
+git clone <your repo> && cd <repo>/cardinalgis
+docker build -t cardinalgis .
+docker run -d --restart=always -p 3000:3000 -v cardinalgis-data:/data \
+  -e EDITOR_TOKEN='choose-a-long-random-key' --name cardinalgis cardinalgis
 ```
 Then put **Caddy** or **Nginx** in front for HTTPS and your domain. Caddy does HTTPS
 automatically with a two-line config: `yourdomain.ng { reverse_proxy localhost:3000 }`.
@@ -356,7 +403,7 @@ Export → GeoJSON** as an extra, human-readable backup.
 ## Quick reference
 
 ```bash
-npm install          # once, after cloning
+npm install          # once, after cloning (inside the cardinalgis folder)
 npm run dev          # develop (auto-restart)
 npm test             # run tests
 npm start            # run like production
@@ -364,4 +411,4 @@ EDITOR_TOKEN=abc123 npm start      # protect editing (macOS/Linux)
 set EDITOR_TOKEN=abc123 && npm start   # Windows cmd
 ```
 
-Good luck, and happy mapping! 🇳🇬⛏️
+Good luck, and happy mapping with CardinalGIS! 🇳🇬⛏️🧭

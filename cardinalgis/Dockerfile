@@ -1,4 +1,4 @@
-# Small production image for the Nigeria Mining Map.
+# Small production image for CardinalGIS.
 FROM node:22-alpine
 WORKDIR /app
 

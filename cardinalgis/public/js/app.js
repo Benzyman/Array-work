@@ -1,4 +1,4 @@
-// Nigeria Mining Map – browser app.
+// CardinalGIS – browser app.
 // Talks to the JSON API in src/app.js and draws everything with Leaflet.
 (function () {
   'use strict';
@@ -30,6 +30,11 @@
       if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, value);
     } catch { /* private mode etc. */ }
     return null;
+  }
+
+  function isDarkTheme() {
+    const t = document.documentElement.dataset.theme;
+    return t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
   }
 
   let toastTimer;
@@ -104,7 +109,9 @@
   });
   map.fitBounds(NIGERIA_VIEW);
 
+  const CARTO = '&copy; OpenStreetMap contributors &copy; CARTO';
   const baseLayers = {
+    'Light': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: CARTO }),
     'Streets': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19, attribution: '&copy; OpenStreetMap contributors',
     }),
@@ -114,8 +121,10 @@
     'Terrain': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
       maxZoom: 17, attribution: '&copy; OpenStreetMap contributors, SRTM | &copy; OpenTopoMap (CC-BY-SA)',
     }),
+    'Dark': L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: CARTO }),
   };
-  baseLayers[storage('baseLayer') in baseLayers ? storage('baseLayer') : 'Streets'].addTo(map);
+  const savedBase = storage('baseLayer');
+  baseLayers[savedBase in baseLayers ? savedBase : (isDarkTheme() ? 'Dark' : 'Light')].addTo(map);
   map.on('baselayerchange', (e) => storage('baseLayer', e.name));
 
   const sitesLayer = L.featureGroup().addTo(map);
@@ -123,6 +132,16 @@
   const tempLayer = L.featureGroup().addTo(map);
   L.control.layers(baseLayers, { 'Sites': sitesLayer, 'Licence areas': areasLayer }, { position: 'topright' }).addTo(map);
   L.control.scale({ imperial: false }).addTo(map);
+
+  // North arrow
+  const north = L.control({ position: 'topleft' });
+  north.onAdd = () => {
+    const el = L.DomUtil.create('div', 'north leaflet-control');
+    el.title = 'North';
+    el.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z" fill="#c8102e"/><path d="M12 2v14l-5 4z" fill="#8a1023"/></svg>';
+    return el;
+  };
+  north.addTo(map);
 
   const legend = L.control({ position: 'bottomright' });
   legend.onAdd = () => L.DomUtil.create('div', 'legend');
@@ -133,16 +152,31 @@
     const geojson = await api('GET', '/api/boundary');
     const ring = geojson.features[0].geometry.coordinates[0].map(([lng, lat]) => [lat, lng]);
     const world = [[-89, -179], [-89, 179], [89, 179], [89, -179]];
-    L.polygon([world, ring], { stroke: false, fillColor: '#222', fillOpacity: 0.35, interactive: false }).addTo(map);
-    L.polygon(ring, { color: '#0b7a3e', weight: 2, fill: false, interactive: false, dashArray: '6 4' }).addTo(map);
+    L.polygon([world, ring], { stroke: false, fillColor: '#0d0f13', fillOpacity: 0.4, interactive: false }).addTo(map);
+    L.polygon(ring, { color: '#c8102e', weight: 2, opacity: 0.85, fill: false, interactive: false, dashArray: '7 5' }).addTo(map);
   }
 
   // Live coordinate readout.
   function showCoords(latlng) {
     const d = C.describe(latlng.lat, latlng.lng);
-    $('#coord-bar').innerHTML = `${esc(d.dd)} &nbsp;|&nbsp; ${esc(d.dms)}<br>${esc(d.utm)} &nbsp;|&nbsp; ${esc(d.ntm)}`;
+    const [utmK, utmV] = d.utm.split(': ');
+    const [ntmK, ntmV] = d.ntm.split(': ');
+    $('#hud-dd').textContent = d.dd;
+    $('#hud-dms').textContent = d.dms;
+    $('#hud-utm-k').textContent = utmK.replace('UTM Zone ', 'UTM ');
+    $('#hud-utm').textContent = utmV;
+    $('#hud-ntm-k').textContent = ntmK.replace(' Belt', '');
+    $('#hud-ntm').textContent = ntmV;
   }
   map.on('mousemove', (e) => showCoords(e.latlng));
+  // Touch screens have no mouse pointer: show the coordinates of the map centre
+  // under a crosshair instead, so you can read off any spot by panning to it.
+  if (window.matchMedia('(hover: none)').matches) {
+    const cross = L.DomUtil.create('div', 'centre-cross', $('.map-wrap'));
+    cross.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/><circle cx="12" cy="12" r="1.5"/></svg>';
+    map.on('move', () => showCoords(map.getCenter()));
+    map.whenReady(() => showCoords(map.getCenter()));
+  }
   map.on('click', (e) => {
     showCoords(e.latlng);
     if (state.mode === 'pick-site') {
@@ -191,12 +225,15 @@
       let metres = 0;
       for (let i = 1; i < pts.length; i++) metres += pts[i - 1].distanceTo(pts[i]);
       tempLayer.clearLayers();
-      const line = L.polyline(pts, { color: '#e0559b', weight: 3, dashArray: '4 6' }).addTo(tempLayer);
-      line.bindPopup(`<b>Distance:</b> ${metres >= 1000 ? (metres / 1000).toFixed(3) + ' km' : metres.toFixed(1) + ' m'}<br><button class="btn small" data-action="clear-measure">Clear</button>`).openPopup(pts[pts.length - 1]);
+      const line = L.polyline(pts, { color: DRAW_COLOUR, weight: 3, dashArray: '4 6' }).addTo(tempLayer);
+      const dist = metres >= 1000 ? (metres / 1000).toFixed(3) + ' km' : metres.toFixed(1) + ' m';
+      line.bindPopup(`<div class="pop-head"><div class="pop-swatch" style="background:${DRAW_COLOUR}"></div><div><div class="pop-sub">Measured distance</div><div class="pop-title">${dist}</div></div></div>
+        <div class="pop-actions"><button data-action="clear-measure">Clear</button></div>`).openPopup(pts[pts.length - 1]);
     }
   });
 
-  const drawShapeOptions = { color: '#e0559b', weight: 2, fillOpacity: 0.15 };
+  const DRAW_COLOUR = '#c8102e';
+  const drawShapeOptions = { color: DRAW_COLOUR, weight: 2.5, fillOpacity: 0.12 };
 
   $('#btn-add-click').addEventListener('click', () => startMode('pick-site', 'Click the map where the site is'));
 
@@ -229,7 +266,7 @@
 
   $('#btn-measure').addEventListener('click', () => {
     startMode('measure', 'Click points along the line, click the last point again to finish');
-    state.drawHandler = new L.Draw.Polyline(map, { shapeOptions: { color: '#e0559b', weight: 3 }, metric: true, showLength: true });
+    state.drawHandler = new L.Draw.Polyline(map, { shapeOptions: { color: DRAW_COLOUR, weight: 3 }, metric: true, showLength: true });
     state.drawHandler.enable();
   });
 
@@ -307,10 +344,10 @@
         const loc = await api('GET', `/api/locate?lat=${ll.lat}&lng=${ll.lng}`);
         const d = C.describe(ll.lat, ll.lng);
         if (!loc.accepted) {
-          out.innerHTML = `<span class="error">✖ ${esc(d.dd)} is outside Nigeria — it cannot be saved.</span>`;
+          out.innerHTML = `<div class="line bad">✕ Outside Nigeria. This point cannot be saved.</div><div class="coords">${esc(d.dd)}</div>`;
         } else {
           const place = [loc.lga, loc.state].filter(Boolean).join(', ');
-          out.innerHTML = `<span class="${loc.inNigeria ? 'ok' : 'warn'}">${loc.inNigeria ? '✔' : '⚠ Near the border —'} ${esc(place)}</span><br><span class="muted">${esc(d.dd)} · ${esc(d.utm)}</span>`;
+          out.innerHTML = `<div class="line ${loc.inNigeria ? 'ok' : 'warn'}">${loc.inNigeria ? '✓' : '⚠ Near the border:'} ${esc(place)}</div><div class="coords">${esc(d.dd)} · ${esc(d.utm)}</div>`;
         }
       } catch { out.textContent = ''; }
     }, 250);
@@ -396,12 +433,15 @@
       ['Elevation', s.elevation_m != null ? s.elevation_m + ' m' : ''], ['Accuracy', s.accuracy_m != null ? '±' + s.accuracy_m + ' m' : ''],
       ['Surveyor', s.surveyor], ['Date', s.survey_date], ['Notes', s.notes],
     ].filter(([, v]) => v);
-    return `<h3>${esc(s.name)}</h3><table>${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table>
-      <div class="popup-actions">
-        <button data-action="edit-site" data-id="${s.id}">Edit</button>
+    const mono = new Set(['Lat/Lng', 'DMS', 'UTM', 'Minna']);
+    return `<div class="pop-head"><div class="pop-swatch" style="background:${colourFor(s.mineral)}"></div>
+        <div><div class="pop-title">${esc(s.name)}</div><div class="pop-sub">${esc(s.mineral)} · ${esc(s.feature_type)}</div></div></div>
+      <dl class="pop-grid">${rows.slice(1).filter(([k]) => k !== 'Mineral').map(([k, v]) => `<dt>${esc(k)}</dt><dd${mono.has(k) ? ' class="mono"' : ''}>${esc(v)}</dd>`).join('')}</dl>
+      <div class="pop-actions">
+        <button class="primary" data-action="edit-site" data-id="${s.id}">Edit</button>
         <button data-action="copy" data-text="${esc(d.dd)}">Copy lat/lng</button>
         <button data-action="directions" data-lat="${s.lat}" data-lng="${s.lng}">Directions</button>
-        <button data-action="delete-site" data-id="${s.id}">Delete</button>
+        <button class="danger" data-action="delete-site" data-id="${s.id}">Delete</button>
       </div>`;
   }
 
@@ -411,22 +451,26 @@
     siteMarkers.clear();
     for (const s of sites) {
       const marker = L.circleMarker([s.lat, s.lng], {
-        radius: 7, weight: 1.5, color: '#fff', fillColor: colourFor(s.mineral), fillOpacity: 0.95,
-      }).bindPopup(() => sitePopup(s), { maxWidth: 320 }).bindTooltip(s.name, { direction: 'top', offset: [0, -6] });
+        radius: 8, weight: 2.5, color: '#fff', fillColor: colourFor(s.mineral), fillOpacity: 1,
+      }).bindPopup(() => sitePopup(s), { maxWidth: 340 }).bindTooltip(s.name, { direction: 'top', offset: [0, -6] });
       marker.addTo(sitesLayer);
       siteMarkers.set(s.id, marker);
     }
-    $('#sites-count').textContent = `${sites.length} of ${state.sites.length} sites shown`;
+    $('#sites-count').textContent = state.sites.length ? `Showing ${sites.length} of ${state.sites.length} sites` : '';
     $('#sites-list').innerHTML = sites.length ? sites.map((s) => `
-      <li data-site="${s.id}">
-        <span class="dot" style="background:${colourFor(s.mineral)}"></span>
-        <div><div class="title">${esc(s.name)}</div>
-        <div class="sub">${esc(s.mineral)} · ${esc(s.feature_type)} · ${esc(s.status)}</div>
-        <div class="sub">${esc([s.lga, s.state].filter(Boolean).join(', '))}</div></div>
-      </li>`).join('') : '<li class="empty">No sites yet. Click “＋ Click map to add”.</li>';
+      <li class="item" data-site="${s.id}">
+        <span class="bar" style="background:${colourFor(s.mineral)}"></span>
+        <div>
+          <div class="title">${esc(s.name)}</div>
+          <div class="meta"><span class="chip"><i style="background:${colourFor(s.mineral)}"></i>${esc(s.mineral)}</span><span class="chip">${esc(s.feature_type)}</span><span class="chip status-${esc(s.status)}">${esc(s.status)}</span></div>
+          <div class="where"><svg class="icon"><use href="#i-pin"/></svg>${esc([s.lga, s.state].filter(Boolean).join(', '))}</div>
+        </div>
+      </li>`).join('') : state.sites.length
+      ? '<li class="empty"><svg class="icon"><use href="#i-search"/></svg><b>No matching sites</b><span>Try a different search or filter.</span></li>'
+      : '<li class="empty"><svg class="icon"><use href="#i-pin"/></svg><b>No sites yet</b><span>Pick a point on the map, type coordinates, or capture your GPS position.</span></li>';
 
     const used = [...new Set(state.sites.map((s) => s.mineral))];
-    $('.legend').innerHTML = used.length ? used.map((m) => `<div><i style="background:${colourFor(m)}"></i>${esc(m)}</div>`).join('') : '';
+    $('.legend').innerHTML = used.length ? '<h4>Minerals</h4>' + used.map((m) => `<div><i style="background:${colourFor(m)}"></i>${esc(m)}</div>`).join('') : '';
     $('.legend').style.display = used.length ? '' : 'none';
   }
 
@@ -468,12 +512,15 @@
     const ha = C.areaHa(latlngs);
     const per = perimeterM(latlngs);
     const centre = L.polygon(latlngs).getBounds().getCenter();
-    $('#area-summary').innerHTML = `<b>${esc(fmtHa(ha))}</b> · perimeter ${esc((per / 1000).toFixed(3))} km · ${latlngs.length} corners`;
+    $('#area-summary').innerHTML = `
+      <div class="kpi"><b>${esc(ha >= 100 ? ha.toLocaleString('en-NG', { maximumFractionDigits: 1 }) : ha.toFixed(3))}</b><span>hectares</span></div>
+      <div class="kpi"><b>${esc((per / 1000).toFixed(3))}</b><span>km perimeter</span></div>
+      <div class="kpi"><b>${latlngs.length}</b><span>corners</span></div>`;
     areaDialog.showModal();
     f.name.focus();
     try {
       const loc = await api('GET', `/api/locate?lat=${centre.lat}&lng=${centre.lng}`);
-      if (loc.accepted) $('#area-summary').innerHTML += `<br><span class="ok">✔ ${esc([loc.lga, loc.state].filter(Boolean).join(', '))}</span>`;
+      if (loc.accepted) $('#area-summary').insertAdjacentHTML('beforeend', `<div class="place">✓ ${esc([loc.lga, loc.state].filter(Boolean).join(', '))}</div>`);
     } catch { /* ignore */ }
   }
 
@@ -501,12 +548,14 @@
       ['Title', a.licence_type], ['Number', a.licence_no], ['Holder', a.holder], ['Mineral', a.mineral],
       ['Area', fmtHa(a.area_ha)], ['Location', [a.lga, a.state].filter(Boolean).join(', ')], ['Notes', a.notes],
     ].filter(([, v]) => v);
-    return `<h3>${esc(a.name)}</h3><table>${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table>
-      <div class="popup-actions">
-        <button data-action="edit-area" data-id="${a.id}">Edit details</button>
+    return `<div class="pop-head"><div class="pop-swatch" style="background:${colourFor(a.mineral)}"></div>
+        <div><div class="pop-title">${esc(a.name)}</div><div class="pop-sub">${esc(fmtHa(a.area_ha))}</div></div></div>
+      <dl class="pop-grid">${rows.filter(([k]) => k !== 'Area').map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+      <div class="pop-actions">
+        <button class="primary" data-action="edit-area" data-id="${a.id}">Edit details</button>
         <button data-action="edit-shape" data-id="${a.id}">Edit shape</button>
-        <button data-action="corners" data-id="${a.id}">Corner list (CSV)</button>
-        <button data-action="delete-area" data-id="${a.id}">Delete</button>
+        <button data-action="corners" data-id="${a.id}">Corners CSV</button>
+        <button class="danger" data-action="delete-area" data-id="${a.id}">Delete</button>
       </div>`;
   }
 
@@ -516,20 +565,22 @@
     for (const a of state.areas) {
       const colour = colourFor(a.mineral);
       const shape = L.polygon(geometryToLatLngs(a.geometry), { color: colour === '#f2efe6' ? '#888' : colour, weight: 2, fillOpacity: 0.18 })
-        .bindPopup(() => areaPopup(a), { maxWidth: 320 })
+        .bindPopup(() => areaPopup(a), { maxWidth: 340 })
         .bindTooltip(`${a.name} (${a.area_ha.toFixed(1)} ha)`, { sticky: true });
       shape.addTo(areasLayer);
       areaShapes.set(a.id, shape);
     }
     const total = state.areas.reduce((s, a) => s + a.area_ha, 0);
-    $('#areas-count').textContent = `${state.areas.length} areas · ${fmtHa(total)} total`;
+    $('#areas-count').textContent = state.areas.length ? `${state.areas.length} ${state.areas.length === 1 ? 'area' : 'areas'} · ${fmtHa(total)} in total` : '';
     $('#areas-list').innerHTML = state.areas.length ? state.areas.map((a) => `
-      <li data-area="${a.id}">
-        <span class="dot" style="background:${colourFor(a.mineral)}; border-radius:2px"></span>
-        <div><div class="title">${esc(a.name)}</div>
-        <div class="sub">${esc(a.licence_type)}${a.licence_no ? ' · ' + esc(a.licence_no) : ''}</div>
-        <div class="sub">${esc(fmtHa(a.area_ha))} · ${esc([a.lga, a.state].filter(Boolean).join(', '))}</div></div>
-      </li>`).join('') : '<li class="empty">No areas yet. Draw a boundary or enter beacon coordinates.</li>';
+      <li class="item" data-area="${a.id}">
+        <span class="bar" style="background:${colourFor(a.mineral)}"></span>
+        <div>
+          <div class="title">${esc(a.name)}</div>
+          <div class="meta"><span class="chip"><i style="background:${colourFor(a.mineral)}"></i>${esc(a.mineral)}</span><span class="chip">${esc(a.licence_type.replace(/^.*\((\w+)\)$/, '$1'))}${a.licence_no ? ' ' + esc(a.licence_no) : ''}</span><span class="chip">${esc(fmtHa(a.area_ha))}</span></div>
+          <div class="where"><svg class="icon"><use href="#i-pin"/></svg>${esc([a.lga, a.state].filter(Boolean).join(', '))}</div>
+        </div>
+      </li>`).join('') : '<li class="empty"><svg class="icon"><use href="#i-poly"/></svg><b>No licence areas yet</b><span>Draw a boundary on the map or paste beacon coordinates from a survey plan.</span></li>';
   }
 
   function focusArea(id) {
@@ -570,7 +621,7 @@
     const latlngs = points.map((p) => L.latLng(p.lat, p.lng));
     tempLayer.clearLayers();
     const preview = L.polygon(latlngs, drawShapeOptions).addTo(tempLayer);
-    latlngs.forEach((p, i) => L.circleMarker(p, { radius: 4, color: '#e0559b' }).bindTooltip(`Corner ${i + 1}`).addTo(tempLayer));
+    latlngs.forEach((p, i) => L.circleMarker(p, { radius: 4, color: DRAW_COLOUR }).bindTooltip(`Corner ${i + 1}`).addTo(tempLayer));
     map.fitBounds(preview.getBounds(), { maxZoom: 16, padding: [30, 30] });
     openAreaForm({ geometry: latlngsToGeometry(latlngs) });
   });
@@ -634,6 +685,9 @@
         await refresh();
       } else if (action === 'clear-measure') {
         tempLayer.clearLayers();
+      } else if (action === 'add-here') {
+        map.closePopup();
+        openSiteForm({ lat: Number(btn.dataset.lat), lng: Number(btn.dataset.lng) });
       }
     } catch (err) {
       toast(err.message, true);
@@ -667,12 +721,12 @@
       }).join('');
       const loc = await api('GET', `/api/locate?lat=${ll.lat}&lng=${ll.lng}`);
       const where = loc.accepted
-        ? `<p class="${loc.inNigeria ? 'ok' : 'warn'}">${loc.inNigeria ? '✔ In Nigeria' : '⚠ Near the border'} — ${esc([loc.lga, loc.state].filter(Boolean).join(', '))}</p>`
-        : '<p class="error">✖ This point is outside Nigeria</p>';
+        ? `<div class="status-line ${loc.inNigeria ? 'ok' : 'warn'}">${loc.inNigeria ? '✓ In Nigeria' : '⚠ Near the border'}: ${esc([loc.lga, loc.state].filter(Boolean).join(', '))}</div>`
+        : '<div class="status-line bad">✕ This point is outside Nigeria</div>';
       out.innerHTML = where + `<table>${rows}</table>`;
       $('#cv-show').disabled = false;
     } catch (err) {
-      out.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+      out.innerHTML = `<div class="status-line bad">${esc(err.message)}</div>`;
       $('#cv-show').disabled = true;
     }
   });
@@ -681,26 +735,24 @@
     const ll = state.lastConverted;
     if (!ll) return;
     tempLayer.clearLayers();
-    L.circleMarker([ll.lat, ll.lng], { radius: 9, color: '#e0559b', weight: 3 })
-      .bindPopup(`<b>Converted point</b><br>${esc(C.describe(ll.lat, ll.lng).dd)}<div class="popup-actions"><button data-action="clear-measure">Clear</button></div>`)
-      .addTo(tempLayer).openPopup();
-    map.setView([ll.lat, ll.lng], Math.max(map.getZoom(), 14));
+    showTempPoint(ll, 'Converted point');
   });
 
   // ---------- data tab: stats, CSV import, editor key ----------
 
   async function renderStats() {
     const s = await api('GET', '/api/stats');
-    $('#topbar-stats').textContent = `${s.sites} sites · ${s.areas} areas`;
+    const ha = Math.round(s.totalAreaHa).toLocaleString('en-NG');
+    $('#topbar-stats').innerHTML = `<span class="kpi-chip"><b>${s.sites}</b> ${s.sites === 1 ? 'site' : 'sites'}</span><span class="kpi-chip"><b>${s.areas}</b> ${s.areas === 1 ? 'area' : 'areas'}</span><span class="kpi-chip"><b>${ha}</b> ha</span>`;
     const max = Math.max(1, ...s.byMineral.map((r) => r.count));
     const maxS = Math.max(1, ...s.byState.map((r) => r.count));
-    const bars = (rows, key, top) => rows.map((r) => `<div class="bar"><span>${esc(r[key] || 'Unknown')}</span><i style="width:${(r.count / top) * 100}%"></i><span>${r.count}</span></div>`).join('');
+    const bars = (rows, key, top, colour) => rows.slice(0, 10).map((r) => `<div class="bar-row"><span>${esc(r[key] || 'Unknown')}</span><span class="track"><span class="fill" style="width:${(r.count / top) * 100}%;${colour ? 'background:' + colour(r[key]) : ''}"></span></span><span>${r.count}</span></div>`).join('');
     $('#stats').innerHTML = `
-      <div class="stat"><b>${s.sites}</b><span>sites</span></div>
-      <div class="stat"><b>${s.areas}</b><span>areas</span></div>
-      <div class="stat"><b>${Math.round(s.totalAreaHa).toLocaleString('en-NG')}</b><span>hectares</span></div>
-      ${s.byMineral.length ? `<div class="bars"><h2>Sites by mineral</h2>${bars(s.byMineral, 'mineral', max)}</div>` : ''}
-      ${s.byState.length ? `<div class="bars"><h2>Sites by state</h2>${bars(s.byState, 'state', maxS)}</div>` : ''}`;
+      <div class="kpi"><b>${s.sites}</b><span>${s.sites === 1 ? 'site' : 'sites'}</span></div>
+      <div class="kpi"><b>${s.areas}</b><span>${s.areas === 1 ? 'area' : 'areas'}</span></div>
+      <div class="kpi"><b>${ha}</b><span>hectares</span></div>
+      ${s.byMineral.length ? `<div class="bars"><h4>Sites by mineral</h4>${bars(s.byMineral, 'mineral', max, colourFor)}</div>` : ''}
+      ${s.byState.length ? `<div class="bars"><h4>Sites by state</h4>${bars(s.byState, 'state', maxS)}</div>` : ''}`;
   }
 
   // Minimal CSV parser that understands quoted fields.
@@ -738,11 +790,11 @@
       if (!header.includes('lat') || !header.includes('lng') || !header.includes('name')) throw new Error('Need name, lat and lng columns');
       const sites = rows.slice(1).map((r) => Object.fromEntries(header.map((h, i) => [h, (r[i] ?? '').trim()])));
       const result = await api('POST', '/api/sites/bulk', { sites });
-      out.innerHTML = `<p class="ok">Imported ${result.created} site(s).</p>` +
-        (result.errors.length ? `<p class="error">${result.errors.length} row(s) skipped:</p><ul class="small">${result.errors.slice(0, 20).map((er) => `<li>Row ${er.row + 1}: ${esc(er.error)}</li>`).join('')}</ul>` : '');
+      out.innerHTML = `<div class="status-line ok">✓ Imported ${result.created} site(s)</div>` +
+        (result.errors.length ? `<div class="status-line warn">${result.errors.length} row(s) skipped</div><ul class="small">${result.errors.slice(0, 20).map((er) => `<li>Row ${er.row + 1}: ${esc(er.error)}</li>`).join('')}</ul>` : '');
       await refresh();
     } catch (err) {
-      out.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+      out.innerHTML = `<div class="status-line bad">${esc(err.message)}</div>`;
     } finally {
       e.target.value = '';
     }
@@ -757,17 +809,93 @@
 
   // ---------- tabs & panel ----------
 
+  function setPanelHidden(hidden) {
+    $('#panel').classList.toggle('hidden', hidden);
+    $('#toggle-panel').setAttribute('aria-expanded', String(!hidden));
+    setTimeout(() => map.invalidateSize(), 60);
+  }
+
   $$('.tab').forEach((tab) => tab.addEventListener('click', () => {
+    // Tapping the section you are already on hides / shows the panel.
+    if (tab.classList.contains('active')) return setPanelHidden(!$('#panel').classList.contains('hidden'));
+    setPanelHidden(false);
     $$('.tab').forEach((t) => t.classList.toggle('active', t === tab));
     $$('.tab-panel').forEach((p) => p.classList.toggle('active', p.id === 'tab-' + tab.dataset.tab));
     if (tab.dataset.tab === 'data') renderStats().catch(() => {});
   }));
 
-  $('#toggle-panel').addEventListener('click', (e) => {
-    const hidden = $('#panel').classList.toggle('hidden');
-    e.currentTarget.setAttribute('aria-expanded', String(!hidden));
-    setTimeout(() => map.invalidateSize(), 50);
+  $('#toggle-panel').addEventListener('click', () => setPanelHidden(!$('#panel').classList.contains('hidden')));
+
+  // ---------- theme ----------
+
+  function applyThemeIcon() {
+    $('#btn-theme use').setAttribute('href', isDarkTheme() ? '#i-sun' : '#i-moon');
+  }
+  $('#btn-theme').addEventListener('click', () => {
+    const next = isDarkTheme() ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    storage('theme', next);
+    applyThemeIcon();
+    // Follow the theme with the matching clean basemap, unless the user picked imagery etc.
+    const want = next === 'dark' ? 'Dark' : 'Light';
+    const other = next === 'dark' ? 'Light' : 'Dark';
+    if (map.hasLayer(baseLayers[other])) { map.removeLayer(baseLayers[other]); baseLayers[want].addTo(map); storage('baseLayer', want); }
   });
+  applyThemeIcon();
+
+  // ---------- go to coordinate ----------
+
+  function showTempPoint(ll, label) {
+    tempLayer.clearLayers();
+    const icon = L.divIcon({ className: '', html: '<div class="goto-pin"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
+    const d = C.describe(ll.lat, ll.lng);
+    L.marker([ll.lat, ll.lng], { icon }).addTo(tempLayer)
+      .bindPopup(`<div class="pop-head"><div class="pop-swatch" style="background:${DRAW_COLOUR}"></div><div><div class="pop-title">${esc(label)}</div><div class="pop-sub mono">${esc(d.dd)}</div></div></div>
+        <dl class="pop-grid"><dt>DMS</dt><dd class="mono">${esc(d.dms)}</dd><dt>UTM</dt><dd class="mono">${esc(d.utm.replace(/^UTM Zone /, ''))}</dd><dt>Minna</dt><dd class="mono">${esc(d.ntm.replace(/^Minna /, ''))}</dd></dl>
+        <div class="pop-actions"><button class="primary" data-action="add-here" data-lat="${ll.lat}" data-lng="${ll.lng}">Add site here</button><button data-action="clear-measure">Clear</button></div>`)
+      .openPopup();
+    map.setView([ll.lat, ll.lng], Math.max(map.getZoom(), 14));
+    showCoords(L.latLng(ll.lat, ll.lng));
+  }
+
+  // Accepts "9.0579, 7.4951", "9.0579 7.4951" or DMS like 9°03'28"N 7°29'42"E.
+  function parseGoto(text) {
+    const t = text.trim();
+    const dms = t.match(/^(.+?[NS])\s*,?\s*(.+?[EW])$/i);
+    if (dms) return C.readInput('DMS', dms[1], dms[2]);
+    const nums = t.match(/-?\d+(?:\.\d+)?/g);
+    if (nums && nums.length === 2) return C.readInput('DD', nums[0], nums[1]);
+    throw new Error('Type latitude, longitude, e.g. 9.0579, 7.4951');
+  }
+
+  $('#goto-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    try {
+      showTempPoint(parseGoto($('#goto-input').value), 'Search result');
+    } catch (err) {
+      toast(err.message, true);
+    }
+  });
+
+  // ---------- install as an app (PWA) ----------
+
+  let installPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPrompt = e;
+    $('#btn-install').hidden = false;
+  });
+  $('#btn-install').addEventListener('click', async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    installPrompt = null;
+    $('#btn-install').hidden = true;
+  });
+  window.addEventListener('appinstalled', () => toast('CardinalGIS installed'));
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
 
   // ---------- load ----------
 

@@ -113,7 +113,9 @@ test('locate endpoint and static files', async (t) => {
   assert.equal(loc.json.state, 'Lagos');
   assert.equal((await s.call('GET', '/api/locate?lat=abc&lng=3')).status, 400);
   const page = await s.call('GET', '/');
-  assert.match(page.text, /Nigeria Mining Map/);
+  assert.match(page.text, /CardinalGIS/);
+  assert.equal((await s.call('GET', '/manifest.webmanifest')).json.name, 'CardinalGIS');
+  assert.equal((await s.call('GET', '/vendor/inter/inter-latin-wght-normal.woff2')).status, 200);
   assert.equal((await s.call('GET', '/vendor/leaflet/leaflet.js')).status, 200);
   assert.equal((await s.call('GET', '/api/nope')).status, 404);
 });

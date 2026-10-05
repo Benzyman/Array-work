@@ -23,10 +23,10 @@ public static int[] rotLeft(int[] a, int d) {
 
 ---
 
-# Nigeria Mining Map (`mining-map/`)
+# CardinalGIS (`cardinalgis/`)
 
-A web platform for mining coordinates and field mapping in Nigeria: mine sites, sample points,
-licence boundaries, UTM and Minna belt conversions, and CSV/GeoJSON/KML export.
+An installable web app for mining coordinates and field mapping in Nigeria: mine sites, sample
+points, licence boundaries, UTM and Minna belt conversions, and CSV/GeoJSON/KML export.
 
-- How to run it: [mining-map/README.md](mining-map/README.md)
-- How it was built, step by step: [mining-map/BUILD_GUIDE.md](mining-map/BUILD_GUIDE.md)
+- How to run it: [cardinalgis/README.md](cardinalgis/README.md)
+- How it was built, step by step: [cardinalgis/BUILD_GUIDE.md](cardinalgis/BUILD_GUIDE.md)
