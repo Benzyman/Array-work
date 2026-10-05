@@ -60,10 +60,35 @@
     return `${d}°${String(m).padStart(2, '0')}'${s.toFixed(2).padStart(5, '0')}"${hemi}`;
   }
 
-  // Accepts things like: 9°4'30.5"N   9 4 30.5 N   N9 4 30.5   -9 4 30.5   9.075
+  // Tidy a typed or pasted value: unify the different minus signs and dashes,
+  // and turn unusual spaces into normal ones. Bullets and other stray symbols
+  // are ignored later because only the digits are read.
+  function tidy(input) {
+    return String(input ?? '')
+      .replace(/[−‐-―﹣－]/g, '-')
+      .replace(/[    ]/g, ' ')
+      .trim()
+      .toUpperCase();
+  }
+
+  // One plain number, e.g. "• 7.518500", "7,5185", "7.5185°E", "N 9.027", "335,000.50".
+  // A lone comma is a decimal point when `decimalComma` is set (degrees), otherwise
+  // commas are thousands separators (eastings like 335,000). S and W make it negative.
+  function parseNumber(input, { decimalComma = false } = {}) {
+    let str = tidy(input);
+    if (!str) return NaN;
+    const neg = /[SW]/.test(str) || /-\s*\d/.test(str);
+    if (decimalComma && !str.includes('.') && (str.match(/,/g) || []).length === 1) str = str.replace(',', '.');
+    else str = str.replace(/(\d),(?=\d{3}\b)/g, '$1');
+    const nums = str.match(/\d+(?:\.\d+)?/g);
+    if (!nums || nums.length !== 1) return NaN;
+    const value = Number(nums[0]);
+    return neg ? -value : value;
+  }
+
+  // Degrees, minutes, seconds. Accepts things like: 9°4'30.5"N   9 4 30.5 N   N9 4 30.5   -9 4 30.5   9.075
   function parseDMS(input) {
-    if (input === undefined || input === null) return NaN;
-    const str = String(input).trim().toUpperCase();
+    const str = tidy(input);
     if (!str) return NaN;
     const neg = /[SW]/.test(str) || /^-/.test(str);
     const nums = str.replace(/[NSEW]/g, ' ').match(/\d+(?:\.\d+)?/g);
@@ -72,6 +97,14 @@
     if (m >= 60 || s >= 60) return NaN;
     const value = d + m / 60 + s / 3600;
     return neg ? -value : value;
+  }
+
+  // A latitude or longitude typed as decimal degrees - or, if it has more than one
+  // number or degree/minute marks in it, as degrees-minutes-seconds.
+  function parseDegrees(input) {
+    const str = tidy(input);
+    const looksDms = /[°º'’′"”″]/.test(str) || (str.match(/\d+(?:[.,]\d+)?/g) || []).length > 1;
+    return looksDms ? parseDMS(str) : parseNumber(str, { decimalComma: true });
   }
 
   function fmt(n, digits) {
@@ -92,18 +125,31 @@
     };
   }
 
-  // Read a coordinate entered in any supported system. Returns { lat, lng } or throws.
+  // Read a coordinate entered in any supported system. Returns { lat, lng } or
+  // throws an Error whose message says which box is wrong and how to fix it.
   function readInput(system, a, b) {
+    const shown = (v) => `"${String(v ?? '').trim()}"`;
     let lat, lng;
-    if (system === 'DD') {
-      lat = Number(a); lng = Number(b);
-    } else if (system === 'DMS') {
-      lat = parseDMS(a); lng = parseDMS(b);
+    if (system === 'DD' || system === 'DMS') {
+      const read = system === 'DD' ? parseDegrees : parseDMS;
+      const example = system === 'DD' ? ['9.0270', '7.5185'] : [`9°01'37"N`, `7°31'07"E`];
+      if (!String(a ?? '').trim()) throw new Error('Enter the latitude');
+      if (!String(b ?? '').trim()) throw new Error('Enter the longitude');
+      lat = read(a);
+      lng = read(b);
+      if (!Number.isFinite(lat)) throw new Error(`Latitude ${shown(a)} is not a coordinate. Type it like ${example[0]}`);
+      if (!Number.isFinite(lng)) throw new Error(`Longitude ${shown(b)} is not a coordinate. Type it like ${example[1]}`);
+      if (Math.abs(lat) > 90) throw new Error('Latitude must be between -90 and 90. In Nigeria it is about 4 to 14');
+      if (Math.abs(lng) > 180) throw new Error('Longitude must be between -180 and 180. In Nigeria it is about 3 to 15');
     } else {
-      if (a === '' || b === '' || !Number.isFinite(Number(a)) || !Number.isFinite(Number(b))) throw new Error('Enter easting and northing in metres');
-      ({ lat, lng } = toLatLng(system, a, b));
+      const e = parseNumber(a);
+      const n = parseNumber(b);
+      if (!String(a ?? '').trim() || !String(b ?? '').trim()) throw new Error('Enter the easting and northing in metres');
+      if (!Number.isFinite(e)) throw new Error(`Easting ${shown(a)} is not a number of metres, e.g. 335000.00`);
+      if (!Number.isFinite(n)) throw new Error(`Northing ${shown(b)} is not a number of metres, e.g. 1001000.00`);
+      ({ lat, lng } = toLatLng(system, e, n));
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('Those easting/northing values do not convert to a position. Check the coordinate system');
     }
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('Could not read that coordinate');
     return { lat, lng };
   }
 
@@ -153,5 +199,5 @@
     return Math.abs(twice / 2) / 10000;
   }
 
-  global.Coords = { SYSTEMS, areaHa, toLatLng, fromLatLng, utmZoneFor, ntmBeltFor, toDMS, parseDMS, describe, readInput, parseBeacons };
+  global.Coords = { SYSTEMS, areaHa, parseNumber, parseDegrees, toLatLng, fromLatLng, utmZoneFor, ntmBeltFor, toDMS, parseDMS, describe, readInput, parseBeacons };
 })(typeof window !== 'undefined' ? window : globalThis);

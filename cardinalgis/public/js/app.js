@@ -485,7 +485,14 @@
     clearTimeout(locateTimer);
     const out = $('#site-locate');
     let ll;
-    try { ll = siteFormLatLng(); } catch (err) { out.innerHTML = ''; return; }
+    try {
+      ll = siteFormLatLng();
+    } catch (err) {
+      // Only complain once both boxes have something in them.
+      const f = siteForm.elements;
+      out.innerHTML = f.a.value.trim() && f.b.value.trim() ? `<div class="line bad">✕ ${esc(err.message)}</div>` : '';
+      return;
+    }
     locateTimer = setTimeout(async () => {
       try {
         const loc = await api('GET', `/api/locate?lat=${ll.lat}&lng=${ll.lng}`);
