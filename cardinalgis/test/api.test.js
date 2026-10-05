@@ -118,4 +118,41 @@ test('locate endpoint and static files', async (t) => {
   assert.equal((await s.call('GET', '/vendor/inter/inter-latin-wght-normal.woff2')).status, 200);
   assert.equal((await s.call('GET', '/vendor/leaflet/leaflet.js')).status, 200);
   assert.equal((await s.call('GET', '/api/nope')).status, 404);
+  const basemap = (await s.call('GET', '/api/basemap')).json;
+  assert.ok(basemap.towns.length > 900);
+  assert.ok(basemap.rivers.some((r) => r.name === 'River Benue'));
+});
+
+test('ownership: defaults, validation, filter, export', async (t) => {
+  const s = await startServer();
+  t.after(s.close);
+  const plain = await s.call('POST', '/api/sites', JOS_SITE);
+  assert.equal(plain.json.ownership, 'Not yet known');
+  const gov = await s.call('POST', '/api/sites', { ...JOS_SITE, name: 'Gov pit', ownership: 'Government-owned' });
+  assert.equal(gov.json.ownership, 'Government-owned');
+  assert.equal((await s.call('POST', '/api/sites', { ...JOS_SITE, ownership: 'Mine' })).status, 400);
+  const filtered = await s.call('GET', '/api/sites?ownership=' + encodeURIComponent('Government-owned'));
+  assert.deepEqual(filtered.json.map((x) => x.name), ['Gov pit']);
+  assert.match((await s.call('GET', '/api/export/csv')).text.split('\r\n')[0], /,status,ownership,/);
+  const geometry = { type: 'Polygon', coordinates: [[[7.49, 9.05], [7.5, 9.05], [7.5, 9.06], [7.49, 9.05]]] };
+  const area = await s.call('POST', '/api/areas', { name: 'Private block', ownership: 'Privately owned', geometry });
+  assert.equal(area.json.ownership, 'Privately owned');
+  const stats = await s.call('GET', '/api/stats');
+  assert.equal(stats.json.byOwnership.length, 2);
+});
+
+test('an older database without the ownership column is upgraded', () => {
+  const { DatabaseSync } = require('node:sqlite');
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'cgis-')), 'old.db');
+  const old = new DatabaseSync(file);
+  old.exec(`CREATE TABLE sites (id INTEGER PRIMARY KEY, name TEXT NOT NULL, feature_type TEXT, mineral TEXT, status TEXT,
+    lat REAL, lng REAL, elevation_m REAL, accuracy_m REAL, state TEXT, lga TEXT, surveyor TEXT, survey_date TEXT, notes TEXT,
+    created_at TEXT, updated_at TEXT)`);
+  old.exec("INSERT INTO sites (name, lat, lng) VALUES ('Old site', 9.79, 8.87)");
+  old.close();
+  const db = openDatabase(file);
+  assert.equal(db.prepare('SELECT ownership FROM sites').get().ownership, 'Not yet known');
 });

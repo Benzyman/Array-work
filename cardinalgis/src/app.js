@@ -7,7 +7,7 @@ const geo = require('./geo');
 const constants = require('./constants');
 const createRecords = require('./records');
 
-const { MINERALS, FEATURE_TYPES, STATUSES, LICENCE_TYPES } = constants;
+const { MINERALS, FEATURE_TYPES, STATUSES, LICENCE_TYPES, OWNERSHIP } = constants;
 const { ValidationError, parseSite, parseArea, areaRow, sitesToCsv, toKml, toGeoJson } = createRecords(geo, constants);
 
 const ROOT = path.join(__dirname, '..');
@@ -50,6 +50,7 @@ function createApp({ db, editorToken = '' } = {}) {
       minerals: MINERALS,
       featureTypes: FEATURE_TYPES,
       statuses: STATUSES,
+      ownership: OWNERSHIP,
       licenceTypes: LICENCE_TYPES,
       states: geo.states.map(({ id, name, capital, zone, lat, lng, bbox }) => ({ id, name, capital, zone, lat, lng, bbox })),
       bbox: geo.NIGERIA_BBOX,
@@ -58,6 +59,7 @@ function createApp({ db, editorToken = '' } = {}) {
   });
 
   api.get('/boundary', (req, res) => res.json(geo.boundary));
+  api.get('/basemap', (req, res) => res.set('Cache-Control', 'public, max-age=86400').json(geo.basemap));
 
   api.get('/locate', (req, res) => {
     const lat = Number(req.query.lat);
@@ -74,6 +76,7 @@ function createApp({ db, editorToken = '' } = {}) {
     if (query.state) { where.push('state = ?'); params.push(String(query.state)); }
     if (query.mineral) { where.push('mineral = ?'); params.push(String(query.mineral)); }
     if (query.status) { where.push('status = ?'); params.push(String(query.status)); }
+    if (query.ownership) { where.push('ownership = ?'); params.push(String(query.ownership)); }
     if (query.q) {
       where.push('(name LIKE ? OR notes LIKE ? OR lga LIKE ? OR surveyor LIKE ?)');
       const like = `%${String(query.q).slice(0, 100)}%`;
@@ -83,8 +86,8 @@ function createApp({ db, editorToken = '' } = {}) {
     return db.prepare(sql).all(...params);
   }
 
-  const insertSite = db.prepare(`INSERT INTO sites (name, feature_type, mineral, status, lat, lng, elevation_m, accuracy_m, state, lga, surveyor, survey_date, notes)
-    VALUES (:name, :feature_type, :mineral, :status, :lat, :lng, :elevation_m, :accuracy_m, :state, :lga, :surveyor, :survey_date, :notes)`);
+  const insertSite = db.prepare(`INSERT INTO sites (name, feature_type, mineral, status, ownership, lat, lng, elevation_m, accuracy_m, state, lga, surveyor, survey_date, notes)
+    VALUES (:name, :feature_type, :mineral, :status, :ownership, :lat, :lng, :elevation_m, :accuracy_m, :state, :lga, :surveyor, :survey_date, :notes)`);
   const getSite = db.prepare('SELECT * FROM sites WHERE id = ?');
 
   api.get('/sites', (req, res) => res.json(listSites(req.query)));
@@ -131,7 +134,7 @@ function createApp({ db, editorToken = '' } = {}) {
     const id = Number(req.params.id);
     if (!getSite.get(id)) return res.status(404).json({ error: 'Site not found' });
     const site = parseSite(req.body || {});
-    db.prepare(`UPDATE sites SET name=:name, feature_type=:feature_type, mineral=:mineral, status=:status, lat=:lat, lng=:lng,
+    db.prepare(`UPDATE sites SET name=:name, feature_type=:feature_type, mineral=:mineral, status=:status, ownership=:ownership, lat=:lat, lng=:lng,
       elevation_m=:elevation_m, accuracy_m=:accuracy_m, state=:state, lga=:lga, surveyor=:surveyor, survey_date=:survey_date,
       notes=:notes, updated_at=datetime('now') WHERE id=:id`).run({ ...site, id });
     res.json(getSite.get(id));
@@ -157,8 +160,8 @@ function createApp({ db, editorToken = '' } = {}) {
 
   api.post('/areas', requireEditor, (req, res) => {
     const area = parseArea(req.body || {});
-    const { lastInsertRowid } = db.prepare(`INSERT INTO areas (name, licence_type, licence_no, holder, mineral, geometry, area_ha, state, lga, notes)
-      VALUES (:name, :licence_type, :licence_no, :holder, :mineral, :geometry, :area_ha, :state, :lga, :notes)`).run(area);
+    const { lastInsertRowid } = db.prepare(`INSERT INTO areas (name, licence_type, licence_no, holder, ownership, mineral, geometry, area_ha, state, lga, notes)
+      VALUES (:name, :licence_type, :licence_no, :holder, :ownership, :mineral, :geometry, :area_ha, :state, :lga, :notes)`).run(area);
     res.status(201).json(areaRow(getArea.get(lastInsertRowid)));
   });
 
@@ -166,7 +169,7 @@ function createApp({ db, editorToken = '' } = {}) {
     const id = Number(req.params.id);
     if (!getArea.get(id)) return res.status(404).json({ error: 'Area not found' });
     const area = parseArea(req.body || {});
-    db.prepare(`UPDATE areas SET name=:name, licence_type=:licence_type, licence_no=:licence_no, holder=:holder, mineral=:mineral,
+    db.prepare(`UPDATE areas SET name=:name, licence_type=:licence_type, licence_no=:licence_no, holder=:holder, ownership=:ownership, mineral=:mineral,
       geometry=:geometry, area_ha=:area_ha, state=:state, lga=:lga, notes=:notes, updated_at=datetime('now') WHERE id=:id`).run({ ...area, id });
     res.json(areaRow(getArea.get(id)));
   });
@@ -185,6 +188,7 @@ function createApp({ db, editorToken = '' } = {}) {
       totalAreaHa: db.prepare('SELECT COALESCE(SUM(area_ha), 0) AS n FROM areas').get().n,
       byMineral: db.prepare('SELECT mineral, COUNT(*) AS count FROM sites GROUP BY mineral ORDER BY count DESC').all(),
       byState: db.prepare('SELECT state, COUNT(*) AS count FROM sites GROUP BY state ORDER BY count DESC').all(),
+      byOwnership: db.prepare('SELECT ownership, COUNT(*) AS count FROM sites GROUP BY ownership ORDER BY count DESC').all(),
     });
   });
 

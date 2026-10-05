@@ -69,6 +69,17 @@
   };
   const colourFor = (mineral) => MINERAL_COLOURS[mineral] || '#2f80ed';
 
+  // Ownership is shown as the coloured edge (ring) of each pin and the outline of each area.
+  const OWNERSHIP_COLOURS = {
+    'Government-owned': '#1f5fd6',
+    'Privately owned': '#e06c00',
+    'Untouched / unclaimed': '#14a05a',
+    'Not yet known': '#8a93a3',
+  };
+  const ownershipOf = (x) => x.ownership || 'Not yet known';
+  const ownColour = (x) => OWNERSHIP_COLOURS[ownershipOf(x)] || OWNERSHIP_COLOURS['Not yet known'];
+  const ownChip = (x) => `<span class="chip own" style="color:${ownColour(x)}"><i style="background:${ownColour(x)}"></i>${esc(ownershipOf(x))}</span>`;
+
   function fmtHa(ha) {
     return ha >= 100 ? `${ha.toLocaleString('en-NG', { maximumFractionDigits: 1 })} ha (${(ha / 100).toFixed(2)} km²)` : `${ha.toFixed(3)} ha`;
   }
@@ -132,33 +143,53 @@
   });
   map.fitBounds(NIGERIA_VIEW);
 
+  // Base maps. The Esri (ArcGIS) layers are the same maps ArcGIS uses: the
+  // Topographic map shows rivers, lakes, state and country borders, roads,
+  // railways, towns and terrain. "Satellite + labels" lays Esri's borders,
+  // place names and roads over the satellite photo.
+  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+  const esriTiles = (service, attribution, opts = {}) =>
+    L.tileLayer(`${ESRI}${service}/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 19, attribution, ...opts });
+  const ESRI_CREDIT = 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, FAO, NOAA, USGS, &copy; OpenStreetMap contributors, and the GIS User Community';
   const CARTO = '&copy; OpenStreetMap contributors &copy; CARTO';
+
+  const satellite = esriTiles('World_Imagery', 'Imagery &copy; Esri, Maxar, Earthstar Geographics');
+  const tileLayers = {
+    topo: esriTiles('World_Topo_Map', ESRI_CREDIT),
+    street: esriTiles('World_Street_Map', ESRI_CREDIT),
+    satellite,
+    satelliteLabels: L.layerGroup([
+      esriTiles('World_Imagery', 'Imagery &copy; Esri, Maxar, Earthstar Geographics'),
+      esriTiles('Reference/World_Transportation', ESRI_CREDIT, { opacity: 0.85 }),
+      esriTiles('Reference/World_Boundaries_and_Places', ESRI_CREDIT),
+    ]),
+    light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: CARTO }),
+    dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: CARTO }),
+  };
   const baseLayers = {
-    'Light': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: CARTO }),
-    'Streets': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors',
-    }),
-    'Satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 19, attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics',
-    }),
-    'Terrain': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-      maxZoom: 17, attribution: '&copy; OpenStreetMap contributors, SRTM | &copy; OpenTopoMap (CC-BY-SA)',
-    }),
-    'Dark': L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: CARTO }),
+    'Topographic (Esri)': tileLayers.topo,
+    'Streets (Esri)': tileLayers.street,
+    'Satellite + labels (Esri)': tileLayers.satelliteLabels,
+    'Satellite only (Esri)': tileLayers.satellite,
+    'Light': tileLayers.light,
+    'Dark': tileLayers.dark,
   };
   const savedBase = storage('baseLayer');
-  baseLayers[savedBase in baseLayers ? savedBase : (isDarkTheme() ? 'Dark' : 'Light')].addTo(map);
+  baseLayers[savedBase in baseLayers ? savedBase : 'Topographic (Esri)'].addTo(map);
   map.on('baselayerchange', (e) => storage('baseLayer', e.name));
 
   // If map images can't be downloaded (no internet, blocked network) say so once,
   // instead of leaving a blank map. The outline, state names and data still work.
   let tileLoads = 0, tileErrors = 0, tileWarned = false;
-  Object.values(baseLayers).forEach((layer) => {
+  const everyTileLayer = [];
+  Object.values(baseLayers).forEach((layer) => (layer.eachLayer ? layer.eachLayer((l) => everyTileLayer.push(l)) : everyTileLayer.push(layer)));
+  everyTileLayer.forEach((layer) => {
     layer.on('tileload', () => { tileLoads++; });
     layer.on('tileerror', () => {
       if (++tileErrors >= 6 && tileLoads === 0 && !tileWarned) {
         tileWarned = true;
-        toast('Map images need internet. Your data, the Nigeria outline and state names still work.', true);
+        toast('Map images need internet, so the built-in offline map is shown: borders, major rivers, lakes and towns.', true);
+        if (!map.hasLayer(referenceLayer)) referenceLayer.addTo(map);
       }
     });
   });
@@ -167,7 +198,18 @@
   const areasLayer = L.featureGroup().addTo(map);
   const tempLayer = L.featureGroup().addTo(map);
   const stateLabels = L.layerGroup().addTo(map);
-  L.control.layers(baseLayers, { 'Sites': sitesLayer, 'Licence areas': areasLayer, 'State names': stateLabels }, { position: 'topright' }).addTo(map);
+  // Offline reference map (drawn by drawReferenceMap below).
+  const referenceLayer = L.layerGroup();
+  referenceLayer.getAttribution = () => 'Offline map: Natural Earth, GeoNames (CC BY 4.0)';
+  const capitalLayer = L.layerGroup().addTo(referenceLayer);  // state capitals + Abuja
+  const townLayer = L.layerGroup();                            // other towns, added when zoomed in
+  const canvas = L.canvas({ padding: 0.3 });
+  L.control.layers(baseLayers, {
+    'Sites': sitesLayer,
+    'Licence areas': areasLayer,
+    'State names': stateLabels,
+    'Offline map: rivers, lakes, towns': referenceLayer,
+  }, { position: 'topright' }).addTo(map);
 
   // State names at each state's centre, from the built-in data (works offline).
   function addStateLabels(states) {
@@ -183,6 +225,11 @@
   function updateLabelZoom() {
     const z = map.getZoom();
     map.getContainer().classList.toggle('labels-off', z < 6 || z > 9);
+    // Capitals: dots always, names from zoom 7. Other towns: from zoom 8, names from zoom 9.
+    map.getContainer().classList.toggle('towns-off', z < 7);
+    map.getContainer().classList.toggle('small-towns-off', z < 9);
+    if (z >= 8 && !referenceLayer.hasLayer(townLayer)) referenceLayer.addLayer(townLayer);
+    if (z < 8 && referenceLayer.hasLayer(townLayer)) referenceLayer.removeLayer(townLayer);
   }
   map.on('zoomend', updateLabelZoom);
   updateLabelZoom();
@@ -205,10 +252,55 @@
   // Grey out everything outside Nigeria so it is obvious where data can go.
   async function drawBoundary() {
     const geojson = await api('GET', '/api/boundary');
-    const ring = geojson.features[0].geometry.coordinates[0].map(([lng, lat]) => [lat, lng]);
+    const g = geojson.features[0].geometry;
+    const polygons = g.type === 'MultiPolygon' ? g.coordinates : [g.coordinates];
+    const outers = polygons.map((poly) => poly[0].map(([lng, lat]) => [lat, lng]));
     const world = [[-89, -179], [-89, 179], [89, 179], [89, -179]];
-    L.polygon([world, ring], { stroke: false, fillColor: '#0d0f13', fillOpacity: 0.4, interactive: false }).addTo(map);
-    L.polygon(ring, { color: '#c8102e', weight: 2, opacity: 0.85, fill: false, interactive: false, dashArray: '7 5' }).addTo(map);
+    L.polygon([world, ...outers], { stroke: false, fillColor: '#0d0f13', fillOpacity: 0.4, interactive: false }).addTo(map);
+    L.polygon(outers, { color: '#c8102e', weight: 2, opacity: 0.85, fill: false, interactive: false, dashArray: '7 5' }).addTo(map);
+  }
+
+  // ---------- offline reference map: rivers, lakes, towns, neighbours ----------
+  // Built from open data shipped with the app (Natural Earth + GeoNames), so it
+  // works with no internet. It switches on by itself if map images fail to load.
+
+  async function drawReferenceMap() {
+    const b = await api('GET', '/api/basemap');
+    const ll = (line) => line.map(([lng, lat]) => [lat, lng]);
+    for (const n of b.neighbours) {
+      n.lines.forEach((line) => L.polyline(ll(line), { color: '#6b7280', weight: 1.5, dashArray: '6 3 1 3', interactive: false, renderer: canvas }).addTo(referenceLayer));
+      L.marker([n.label[1], n.label[0]], { interactive: false, keyboard: false, icon: L.divIcon({ className: 'country-label', html: `<span>${esc(n.name.toUpperCase())}</span>`, iconSize: null }) }).addTo(referenceLayer);
+    }
+    for (const lake of b.lakes) {
+      L.polygon(ll(lake.ring), { color: '#3b82c4', weight: 1, fillColor: '#9cc9ee', fillOpacity: 0.85, interactive: false, renderer: canvas }).addTo(referenceLayer);
+      if (lake.name) {
+        const c = L.polygon(ll(lake.ring)).getBounds().getCenter();
+        L.marker(c, { interactive: false, keyboard: false, icon: L.divIcon({ className: 'water-label', html: `<span>${esc(lake.name)}</span>`, iconSize: null }) }).addTo(referenceLayer);
+      }
+    }
+    const labelled = new Set();
+    for (const river of b.rivers) {
+      for (const line of river.lines) {
+        L.polyline(ll(line), { color: '#3b82c4', weight: river.name ? 3 : 2, opacity: 0.9, interactive: false, renderer: canvas }).addTo(referenceLayer);
+      }
+      // One label per river, on the middle of its longest stretch inside Nigeria's view.
+      if (river.name && !labelled.has(river.name)) {
+        labelled.add(river.name);
+        const longest = river.lines.reduce((a, l) => (l.length > a.length ? l : a), []);
+        const mid = longest[Math.floor(longest.length / 2)];
+        L.marker([mid[1], mid[0]], { interactive: false, keyboard: false, icon: L.divIcon({ className: 'water-label', html: `<span>${esc(river.name)}</span>`, iconSize: null }) }).addTo(referenceLayer);
+      }
+    }
+    // Towns: [name, lat, lng, rank] with rank 2 = national capital, 1 = state capital.
+    for (const [name, lat, lng, rank] of b.towns) {
+      const cls = rank === 2 ? 'town-label national' : rank === 1 ? 'town-label capital' : 'town-label';
+      L.circleMarker([lat, lng], {
+        renderer: canvas, radius: rank ? 4 : 2.5, weight: rank ? 1.5 : 1, color: '#1f2937',
+        fillColor: rank === 2 ? '#c8102e' : rank === 1 ? '#ffffff' : '#4b5563', fillOpacity: 1, interactive: false,
+      }).addTo(rank ? capitalLayer : townLayer);
+      L.marker([lat, lng], { interactive: false, keyboard: false, icon: L.divIcon({ className: cls, html: `<span>${esc(name)}</span>`, iconSize: null }) }).addTo(rank ? capitalLayer : townLayer);
+    }
+    updateLabelZoom();
   }
 
   // Live coordinate readout.
@@ -420,6 +512,7 @@
     populateSelect(f.feature_type, m.featureTypes, site.feature_type || 'Mine site');
     populateSelect(f.mineral, m.minerals, site.mineral || storage('lastMineral') || 'Gold');
     populateSelect(f.status, m.statuses, site.status || 'Exploration');
+    populateSelect(f.ownership, m.ownership, site.ownership || 'Not yet known');
     f.survey_date.value = site.survey_date || '';
     f.elevation_m.value = site.elevation_m ?? '';
     f.accuracy_m.value = site.accuracy_m ?? '';
@@ -451,7 +544,7 @@
     try { ll = siteFormLatLng(); } catch (err) { $('#site-error').textContent = err.message; return; }
     const body = {
       name: f.name.value, lat: ll.lat, lng: ll.lng,
-      feature_type: f.feature_type.value, mineral: f.mineral.value, status: f.status.value,
+      feature_type: f.feature_type.value, mineral: f.mineral.value, status: f.status.value, ownership: f.ownership.value,
       survey_date: f.survey_date.value, elevation_m: f.elevation_m.value, accuracy_m: f.accuracy_m.value,
       surveyor: f.surveyor.value, notes: f.notes.value,
     };
@@ -472,8 +565,9 @@
     const q = $('#f-q').value.trim().toLowerCase();
     const st = $('#f-state').value;
     const min = $('#f-mineral').value;
+    const own = $('#f-ownership').value;
     return state.sites.filter((s) =>
-      (!st || s.state === st) && (!min || s.mineral === min) &&
+      (!st || s.state === st) && (!min || s.mineral === min) && (!own || ownershipOf(s) === own) &&
       (!q || [s.name, s.lga, s.state, s.surveyor, s.notes].some((v) => v && v.toLowerCase().includes(q))));
   }
 
@@ -482,7 +576,7 @@
   function sitePopup(s) {
     const d = C.describe(s.lat, s.lng);
     const rows = [
-      ['Type', s.feature_type], ['Mineral', s.mineral], ['Status', s.status],
+      ['Type', s.feature_type], ['Mineral', s.mineral], ['Status', s.status], ['Ownership', ownershipOf(s)],
       ['Location', [s.lga, s.state].filter(Boolean).join(', ')],
       ['Lat/Lng', d.dd], ['DMS', d.dms], ['UTM', d.utm.replace(/^UTM Zone /, '')], ['Minna', d.ntm.replace(/^Minna /, '')],
       ['Elevation', s.elevation_m != null ? s.elevation_m + ' m' : ''], ['Accuracy', s.accuracy_m != null ? '±' + s.accuracy_m + ' m' : ''],
@@ -506,7 +600,7 @@
     siteMarkers.clear();
     for (const s of sites) {
       const marker = L.circleMarker([s.lat, s.lng], {
-        radius: 8, weight: 2.5, color: '#fff', fillColor: colourFor(s.mineral), fillOpacity: 1,
+        radius: 8, weight: 3.5, color: ownColour(s), fillColor: colourFor(s.mineral), fillOpacity: 1,
       }).bindPopup(() => sitePopup(s), { maxWidth: 340 }).bindTooltip(s.name, { direction: 'top', offset: [0, -6] });
       marker.addTo(sitesLayer);
       siteMarkers.set(s.id, marker);
@@ -517,7 +611,7 @@
         <span class="bar" style="background:${colourFor(s.mineral)}"></span>
         <div>
           <div class="title">${esc(s.name)}</div>
-          <div class="meta"><span class="chip"><i style="background:${colourFor(s.mineral)}"></i>${esc(s.mineral)}</span><span class="chip">${esc(s.feature_type)}</span><span class="chip status-${esc(s.status)}">${esc(s.status)}</span></div>
+          <div class="meta"><span class="chip"><i style="background:${colourFor(s.mineral)}"></i>${esc(s.mineral)}</span><span class="chip">${esc(s.feature_type)}</span><span class="chip status-${esc(s.status)}">${esc(s.status)}</span>${ownChip(s)}</div>
           <div class="where"><svg class="icon"><use href="#i-pin"/></svg>${esc([s.lga, s.state].filter(Boolean).join(', '))}</div>
         </div>
       </li>`).join('') : state.sites.length
@@ -525,7 +619,11 @@
       : '<li class="empty"><svg class="icon"><use href="#i-pin"/></svg><b>No sites yet</b><span>Pick a point on the map, type coordinates, or capture your GPS position.</span></li>';
 
     const used = [...new Set(state.sites.map((s) => s.mineral))];
-    $('.legend').innerHTML = used.length ? '<h4>Minerals</h4>' + used.map((m) => `<div><i style="background:${colourFor(m)}"></i>${esc(m)}</div>`).join('') : '';
+    const owners = state.meta.ownership.filter((o) => [...state.sites, ...state.areas].some((x) => ownershipOf(x) === o));
+    $('.legend').innerHTML = used.length || owners.length
+      ? (owners.length ? '<h4>Ownership (pin edge)</h4>' + owners.map((o) => `<div><i class="ring" style="border-color:${OWNERSHIP_COLOURS[o]}"></i>${esc(o)}</div>`).join('') : '')
+        + (used.length ? '<h4>Mineral (pin fill)</h4>' + used.map((m) => `<div><i style="background:${colourFor(m)}"></i>${esc(m)}</div>`).join('') : '')
+      : '';
     $('.legend').style.display = used.length ? '' : 'none';
   }
 
@@ -540,7 +638,7 @@
     const li = e.target.closest('[data-site]');
     if (li) focusSite(li.dataset.site);
   });
-  ['#f-q', '#f-state', '#f-mineral'].forEach((sel) => $(sel).addEventListener('input', renderSites));
+  ['#f-q', '#f-state', '#f-mineral', '#f-ownership'].forEach((sel) => $(sel).addEventListener('input', renderSites));
 
   // ---------- areas ----------
 
@@ -559,6 +657,7 @@
     f.name.value = area.name || '';
     populateSelect(f.licence_type, m.licenceTypes, area.licence_type || m.licenceTypes[1]);
     populateSelect(f.mineral, m.minerals, area.mineral || storage('lastMineral') || 'Gold');
+    populateSelect(f.ownership, m.ownership, area.ownership || 'Not yet known');
     f.licence_no.value = area.licence_no || '';
     f.holder.value = area.holder || '';
     f.notes.value = area.notes || '';
@@ -584,7 +683,7 @@
     const f = areaForm.elements;
     const body = {
       name: f.name.value, licence_type: f.licence_type.value, licence_no: f.licence_no.value,
-      holder: f.holder.value, mineral: f.mineral.value, notes: f.notes.value, geometry: JSON.parse(f.geometry.value),
+      holder: f.holder.value, ownership: f.ownership.value, mineral: f.mineral.value, notes: f.notes.value, geometry: JSON.parse(f.geometry.value),
     };
     try {
       const saved = await api(f.id.value ? 'PUT' : 'POST', f.id.value ? `/api/areas/${f.id.value}` : '/api/areas', body);
@@ -600,7 +699,7 @@
 
   function areaPopup(a) {
     const rows = [
-      ['Title', a.licence_type], ['Number', a.licence_no], ['Holder', a.holder], ['Mineral', a.mineral],
+      ['Title', a.licence_type], ['Number', a.licence_no], ['Holder', a.holder], ['Ownership', ownershipOf(a)], ['Mineral', a.mineral],
       ['Area', fmtHa(a.area_ha)], ['Location', [a.lga, a.state].filter(Boolean).join(', ')], ['Notes', a.notes],
     ].filter(([, v]) => v);
     return `<div class="pop-head"><div class="pop-swatch" style="background:${colourFor(a.mineral)}"></div>
@@ -619,7 +718,7 @@
     areaShapes.clear();
     for (const a of state.areas) {
       const colour = colourFor(a.mineral);
-      const shape = L.polygon(geometryToLatLngs(a.geometry), { color: colour === '#f2efe6' ? '#888' : colour, weight: 2, fillOpacity: 0.18 })
+      const shape = L.polygon(geometryToLatLngs(a.geometry), { color: ownColour(a), weight: 3, fillColor: colour, fillOpacity: 0.22 })
         .bindPopup(() => areaPopup(a), { maxWidth: 340 })
         .bindTooltip(`${a.name} (${a.area_ha.toFixed(1)} ha)`, { sticky: true });
       shape.addTo(areasLayer);
@@ -632,7 +731,7 @@
         <span class="bar" style="background:${colourFor(a.mineral)}"></span>
         <div>
           <div class="title">${esc(a.name)}</div>
-          <div class="meta"><span class="chip"><i style="background:${colourFor(a.mineral)}"></i>${esc(a.mineral)}</span><span class="chip">${esc(a.licence_type.replace(/^.*\((\w+)\)$/, '$1'))}${a.licence_no ? ' ' + esc(a.licence_no) : ''}</span><span class="chip">${esc(fmtHa(a.area_ha))}</span></div>
+          <div class="meta"><span class="chip"><i style="background:${colourFor(a.mineral)}"></i>${esc(a.mineral)}</span><span class="chip">${esc(a.licence_type.replace(/^.*\((\w+)\)$/, '$1'))}${a.licence_no ? ' ' + esc(a.licence_no) : ''}</span><span class="chip">${esc(fmtHa(a.area_ha))}</span>${ownChip(a)}</div>
           <div class="where"><svg class="icon"><use href="#i-pin"/></svg>${esc([a.lga, a.state].filter(Boolean).join(', '))}</div>
         </div>
       </li>`).join('') : '<li class="empty"><svg class="icon"><use href="#i-poly"/></svg><b>No licence areas yet</b><span>Draw a boundary on the map or paste beacon coordinates from a survey plan.</span></li>';
@@ -809,6 +908,7 @@
       <div class="kpi"><b>${s.areas}</b><span>${s.areas === 1 ? 'area' : 'areas'}</span></div>
       <div class="kpi"><b>${ha}</b><span>hectares</span></div>
       ${s.byMineral.length ? `<div class="bars"><h4>Sites by mineral</h4>${bars(s.byMineral, 'mineral', max, colourFor)}</div>` : ''}
+      ${s.byOwnership && s.byOwnership.length ? `<div class="bars"><h4>Sites by ownership</h4>${bars(s.byOwnership, 'ownership', Math.max(1, ...s.byOwnership.map((r) => r.count)), (o) => OWNERSHIP_COLOURS[o] || OWNERSHIP_COLOURS['Not yet known'])}</div>` : ''}
       ${s.byState.length ? `<div class="bars"><h4>Sites by state</h4>${bars(s.byState, 'state', maxS)}</div>` : ''}`;
   }
 
@@ -834,7 +934,7 @@
     return rows.filter((r) => r.some((v) => v.trim() !== ''));
   }
 
-  const HEADER_ALIASES = { latitude: 'lat', y: 'lat', longitude: 'lng', lon: 'lng', long: 'lng', x: 'lng', type: 'feature_type', elevation: 'elevation_m', accuracy: 'accuracy_m', date: 'survey_date' };
+  const HEADER_ALIASES = { owner: 'ownership', land_ownership: 'ownership', latitude: 'lat', y: 'lat', longitude: 'lng', lon: 'lng', long: 'lng', x: 'lng', type: 'feature_type', elevation: 'elevation_m', accuracy: 'accuracy_m', date: 'survey_date' };
 
   $('#csv-file').addEventListener('change', async (e) => {
     const file = e.target.files[0];
@@ -969,12 +1069,13 @@
     state.meta = await api('GET', '/api/meta');
     $('#f-state').innerHTML += state.meta.states.map((s) => `<option>${esc(s.name)}</option>`).join('');
     $('#f-mineral').innerHTML += state.meta.minerals.map((m) => `<option>${esc(m)}</option>`).join('');
+    $('#f-ownership').innerHTML += state.meta.ownership.map((o) => `<option>${esc(o)}</option>`).join('');
     addStateLabels(state.meta.states);
     $$('.system-select').forEach(fillSystemSelect);
     setSiteSystem(siteForm.elements.system.value, null);
     updateConverterLabels();
     if (state.meta.editorRequired) $('#editor-hint').textContent = 'This server requires an editor key to add or change data. Ask your administrator for it. It is stored only in this browser.';
-    await Promise.all([drawBoundary(), refresh()]);
+    await Promise.all([drawBoundary(), drawReferenceMap(), refresh()]);
   }
 
   init().catch((err) => toast('Could not load data: ' + err.message, true));

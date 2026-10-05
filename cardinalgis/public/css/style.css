@@ -190,7 +190,7 @@ legend { font-size: 11.5px; font-weight: 700; color: var(--faint); text-transfor
 .search .icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--faint); width: 16px; height: 16px; }
 .search input { margin: 0; padding-left: 34px; }
 .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-.filters .search { grid-column: 1 / -1; }
+.filters .search, .filters .span-2 { grid-column: 1 / -1; }
 .key-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
 .error { color: var(--danger); font-size: 13px; min-height: 1em; margin: 2px 0 0; }
 
@@ -236,6 +236,8 @@ legend { font-size: 11.5px; font-weight: 700; color: var(--faint); text-transfor
   display: inline-flex; align-items: center; gap: 5px; height: 21px; padding: 0 8px; border-radius: 999px;
   font-size: 11.5px; font-weight: 600; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); white-space: nowrap;
 }
+.chip.own { font-weight: 650; }
+.chip.own i { width: 9px; height: 9px; box-shadow: none; }
 .chip i { width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
 .chip.status-Active { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
 .chip.status-Exploration, .chip.status-Proposed { background: var(--brand-soft); color: var(--brand); border-color: transparent; }
@@ -356,6 +358,9 @@ legend { font-size: 11.5px; font-weight: 700; color: var(--faint); text-transfor
 
 .legend { background: var(--surface); color: var(--text); padding: 9px 12px; border-radius: 10px; font-size: 12px; line-height: 1.75; box-shadow: var(--shadow); max-height: 36vh; overflow: auto; }
 .legend h4 { margin: 0 0 2px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--faint); }
+.legend h4 + div { margin-top: 0; }
+.legend h4:not(:first-child) { margin-top: 6px; }
+.legend i.ring { background: transparent !important; border: 2.5px solid; box-shadow: none; width: 11px; height: 11px; }
 .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
 .north { width: 38px; height: 38px; border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); display: grid; place-items: center; }
 .north svg { width: 26px; height: 26px; }
@@ -369,6 +374,17 @@ legend { font-size: 11.5px; font-weight: 700; color: var(--faint); text-transfor
 :root[data-theme="dark"] .state-label span { color: #b8bfcb; text-shadow: 0 0 3px #000, 0 0 3px #000; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .state-label span { color: #b8bfcb; text-shadow: 0 0 3px #000, 0 0 3px #000; } }
 .labels-off .state-label { display: none; }
+/* Offline reference map labels */
+.town-label span, .water-label span, .country-label span {
+  display: block; white-space: nowrap; pointer-events: none; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff;
+}
+.town-label span { transform: translate(6px, -50%); font-size: 11px; color: #1f2937; }
+.town-label.capital span { font-size: 12px; font-weight: 700; }
+.town-label.national span { font-size: 13px; font-weight: 800; color: #8a1023; }
+.water-label span { transform: translate(-50%, -50%); font-size: 11px; font-style: italic; font-weight: 600; color: #1d5f99; }
+.country-label span { transform: translate(-50%, -50%); font-size: 12px; font-weight: 700; letter-spacing: .3em; color: #6b7280; }
+.towns-off .town-label { display: none; }
+.small-towns-off .town-label:not(.capital):not(.national) { display: none; }
 .demo-badge { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 4px 0 10px; border-radius: 999px; background: rgba(239, 62, 92, .16); border: 1px solid rgba(239, 62, 92, .45); color: #ffd3da; font-size: 12px; font-weight: 650; white-space: nowrap; }
 .demo-badge button { height: 22px; padding: 0 9px; border-radius: 999px; border: 0; background: #ef3e5c; color: #fff; font-size: 11.5px; font-weight: 700; cursor: pointer; }
 .goto-pin { width: 18px; height: 18px; border-radius: 50%; background: var(--brand); border: 3px solid #fff; box-shadow: 0 0 0 6px rgba(200, 16, 46, .25), var(--shadow); }

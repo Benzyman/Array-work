@@ -36,13 +36,14 @@ const sampleSites = rows
   .map((s) => ({ ...s, surveyor: 'Demo surveyor', survey_date: '2026-09-15' }));
 const sampleArea = {
   name: 'Anka EL block (demo)', licence_type: 'Exploration Licence (EL)', licence_no: 'EL 0001',
-  holder: 'Demo Mining Ltd', mineral: 'Gold', notes: 'Sample boundary for practice only',
+  holder: 'Demo Mining Ltd', ownership: 'Privately owned', mineral: 'Gold', notes: 'Sample boundary for practice only',
   geometry: { type: 'Polygon', coordinates: [[[5.90, 12.08], [5.97, 12.08], [5.98, 12.13], [5.91, 12.14], [5.90, 12.08]]] },
 };
 
 const data = {
   boundary: JSON.parse(read('data/nigeria-boundary.geojson')),
   admin: JSON.parse(read('data/nigeria-admin.json')),
+  basemap: JSON.parse(read('data/nigeria-basemap.json')),
   sampleSites,
   sampleArea,
 };

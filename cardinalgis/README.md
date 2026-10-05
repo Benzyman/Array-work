@@ -14,7 +14,10 @@ an interactive map. It only accepts locations inside Nigeria.
 | **Look and feel** | A clean interface with light and dark themes, an icon navigation rail, a floating coordinate readout and a north arrow. On phones it switches to a bottom tab bar with a slide-up panel and a centre crosshair. |
 | **Install as an app** | Install it on Android, iPhone, Windows or Mac. It gets its own icon and window, and the app shell opens even with a weak signal. |
 | **Go to coordinate** | Type `9.0579, 7.4951` or `9°03'28"N 7°29'42"E` in the top search bar to jump there, then add a site at that spot in one tap. |
-| **Map** | Light, streets, satellite, terrain and dark base maps, locked to Nigeria with everything outside greyed out. Live cursor readout in lat/lng, DMS, UTM and Minna belt coordinates. Scale bar and mineral legend. |
+| **Ownership** | Every site and licence area is marked *Government-owned*, *Privately owned*, *Untouched / unclaimed* or *Not yet known*. On the map the pin edge (or area outline) shows ownership and the fill shows the mineral. You can filter by ownership, and it appears in exports and statistics. |
+| **ArcGIS (Esri) maps** | The default **Topographic** map shows rivers, lakes, state and country borders, roads, railways, towns and terrain. **Satellite + labels** adds borders, place names and roads over the satellite photo. Esri street map, light and dark maps are also available. |
+| **Offline map** | Built-in borders (Natural Earth 1:10m), the Niger and Benue rivers, Kainji Reservoir, Lake Chad, the 36 state capitals, Abuja and 927 towns (GeoNames). It switches on by itself when online map images can't load. |
+| **Map** | Several base maps, locked to Nigeria with everything outside greyed out. Live cursor readout in lat/lng, DMS, UTM and Minna belt coordinates. Scale bar and mineral legend. |
 | **Sites (points)** | Add by clicking the map, typing coordinates, or using your phone's GPS (accuracy and elevation are saved). Type, mineral, status, surveyor, date, notes. Search and filter by state and mineral. |
 | **Nigeria-only** | Every coordinate is checked on the server. Points outside Nigeria are rejected. State and LGA are filled in automatically. |
 | **Coordinate systems** | WGS84 decimal degrees and DMS, UTM zones 31N/32N/33N, Minna / UTM 31N/32N, and the Minna Nigeria West, Mid and East belts (NTM). Converter tab for quick conversions. |
@@ -111,8 +114,11 @@ All responses are JSON. Writes need `Authorization: Bearer <EDITOR_TOKEN>` when 
 
 - **State and LGA names are approximate.** The open dataset has LGA centre points and bounding
   boxes, not exact LGA borders, so points near an LGA or state border may get the neighbouring name.
-- **The national outline is simplified** (about 58 points). Points just outside the outline but
-  inside a border LGA's box are accepted with a "near the border" warning.
+- **The national border comes from Natural Earth 1:10m** (about 1,300 points). Points up to 2 km
+  outside it (border towns, lagoon shores, creeks) are accepted with a "near the border" warning.
+- **The offline map has only the major rivers.** Smaller rivers, state boundary lines, roads and
+  railways come from the online Esri maps. They could be added to the offline map from Natural
+  Earth's detailed files.
 - This is a mapping and record-keeping tool. **It is not a legal cadastral survey.** Official
   title boundaries come from the Mining Cadastre Office and registered surveyors.
 
@@ -120,7 +126,9 @@ All responses are JSON. Writes need `Authorization: Bearer <EDITOR_TOKEN>` when 
 
 - National outline: Natural Earth via [johan/world.geo.json](https://github.com/johan/world.geo.json) (public domain).
 - States and LGAs: [`@some19ice/nigeria-geo-core`](https://www.npmjs.com/package/@some19ice/nigeria-geo-core) (MIT).
-- Map tiles: © OpenStreetMap contributors, CARTO, Esri World Imagery, OpenTopoMap. The free CARTO and
+- Offline map: Natural Earth (public domain) via the `earth-topojson` and `sane-topojson` packages;
+  towns from GeoNames (CC BY 4.0) via `cities.json`. Rebuild with `npm run build:basemap`.
+- Map tiles: Esri (ArcGIS Online basemaps) © Esri and its data providers; © OpenStreetMap contributors, CARTO, Esri World Imagery, OpenTopoMap. The free CARTO and
   OpenStreetMap tile services have fair-use limits. For heavy commercial use, get a tile provider
   key (for example MapTiler or Stadia) and swap the URLs in `public/js/app.js`.
 - Font: Inter (SIL Open Font License), served from the app itself.

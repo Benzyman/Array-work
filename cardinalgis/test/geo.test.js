@@ -59,3 +59,13 @@ test('polygon area is accurate on the ellipsoid: 1 km x 1 km UTM square ≈ 100 
   const ha = geo.polygonAreaHa({ type: 'Polygon', coordinates: [ring] });
   assert.ok(Math.abs(ha - 100) < 0.05, `got ${ha}`);
 });
+
+test('detailed border: coastal and border towns accepted, neighbours rejected', () => {
+  const accepted = { Seme: [6.37, 2.72], Bonny: [4.45, 7.17], 'Lagos Island': [6.45, 3.39], Idiroko: [6.63, 2.73] };
+  for (const [name, [lat, lng]] of Object.entries(accepted)) assert.equal(geo.locate(lat, lng).accepted, true, name);
+  const rejected = { 'Porto-Novo': [6.5, 2.6], 'Bakassi (Cameroon)': [4.6, 8.6], Maradi: [13.5, 7.1], Kousseri: [12.08, 15.03] };
+  for (const [name, [lat, lng]] of Object.entries(rejected)) assert.equal(geo.locate(lat, lng).accepted, false, name);
+  const seme = geo.locate(6.37, 2.72);
+  assert.equal(seme.nearBorder, true);
+  assert.equal(seme.state, 'Lagos');
+});

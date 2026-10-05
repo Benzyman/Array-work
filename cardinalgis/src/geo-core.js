@@ -10,8 +10,10 @@
   'use strict';
 
   return function createGeo(boundary, admin) {
-    // The outline ring of Nigeria as [lng, lat] pairs.
-    const NIGERIA_RING = boundary.features[0].geometry.coordinates[0];
+    // Nigeria's border as a list of polygons, each [outerRing, ...holes] of [lng, lat]
+    // pairs. The detailed border is a MultiPolygon (mainland plus delta islands).
+    const g = boundary.features[0].geometry;
+    const NIGERIA_POLYGONS = g.type === 'MultiPolygon' ? g.coordinates : [g.coordinates];
 
     // A generous box around Nigeria. Anything outside this is rejected immediately.
     const NIGERIA_BBOX = { minLat: 4.0, maxLat: 14.0, minLng: 2.6, maxLng: 14.8 };
@@ -79,20 +81,42 @@
       return best;
     }
 
+    // How far (km) a point is from Nigeria's border or coastline.
+    // Uses a flat local approximation, accurate to metres at these distances.
+    const BORDER_TOLERANCE_KM = 2;
+    function distanceToBorderKm(lat, lng) {
+      const kx = 111.32 * Math.cos((lat * Math.PI) / 180);
+      const ky = 110.57;
+      let best = Infinity;
+      for (const polygon of NIGERIA_POLYGONS) {
+        for (const ring of polygon) {
+          for (let i = 0; i < ring.length - 1; i++) {
+            const ax = (ring[i][0] - lng) * kx, ay = (ring[i][1] - lat) * ky;
+            const bx = (ring[i + 1][0] - lng) * kx, by = (ring[i + 1][1] - lat) * ky;
+            const dx = bx - ax, dy = by - ay;
+            const len2 = dx * dx + dy * dy;
+            const t = len2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2)) : 0;
+            best = Math.min(best, Math.hypot(ax + t * dx, ay + t * dy));
+          }
+        }
+      }
+      return best;
+    }
+
     // Main entry point: tell us everything we know about a coordinate.
-    //   inNigeria   - inside the national outline
-    //   nearBorder  - outside the (simplified) outline but inside a border LGA's box,
-    //                 so it may still be Nigerian soil; we accept it with a warning
+    //   inNigeria   - inside Nigeria's border (Natural Earth 1:10m)
+    //   nearBorder  - outside it, but within 2 km of the border or coastline:
+    //                 border towns, lagoon shores and creeks the 1:10m line cuts
+    //                 off. Accepted, with a warning to check the position.
     function locate(lat, lng) {
       if (!isValidLatLng(lat, lng)) {
         return { valid: false, inNigeria: false, nearBorder: false, state: null, lga: null };
       }
       const inBox = lat >= NIGERIA_BBOX.minLat && lat <= NIGERIA_BBOX.maxLat && lng >= NIGERIA_BBOX.minLng && lng <= NIGERIA_BBOX.maxLng;
-      const inNigeria = inBox && pointInRing(lng, lat, NIGERIA_RING);
-      let lga = inBox ? findLga(lat, lng) : null;
-      // Inside Nigeria but no LGA box matched (gaps in the dataset): use the nearest LGA centre.
-      if (inNigeria && !lga) lga = nearestLga(lat, lng);
-      const nearBorder = !inNigeria && Boolean(lga);
+      const inNigeria = inBox && NIGERIA_POLYGONS.some(([outer, ...holes]) => pointInRing(lng, lat, outer) && !holes.some((h) => pointInRing(lng, lat, h)));
+      const nearBorder = !inNigeria && inBox && distanceToBorderKm(lat, lng) <= BORDER_TOLERANCE_KM;
+      let lga = null;
+      if (inNigeria || nearBorder) lga = findLga(lat, lng) || nearestLga(lat, lng);
       const state = lga ? statesById.get(lga.state) : null;
       return {
         valid: true,

@@ -85,6 +85,7 @@
           <label class="search"><svg class="icon"><use href="#i-search"/></svg><input type="search" id="f-q" placeholder="Search name, LGA, surveyor…"></label>
           <select id="f-state" aria-label="Filter by state"><option value="">All states</option></select>
           <select id="f-mineral" aria-label="Filter by mineral"><option value="">All minerals</option></select>
+          <select id="f-ownership" aria-label="Filter by ownership" class="span-2"><option value="">Any ownership</option></select>
         </div>
         <p class="list-meta" id="sites-count"></p>
         <ul class="cards" id="sites-list"></ul>
@@ -147,7 +148,7 @@
           <input type="file" id="csv-file" accept=".csv,text/csv">
           <svg class="icon"><use href="#i-upload"/></svg>
           <b>Choose a CSV file</b>
-          <small>Columns <code>name, lat, lng</code> + optional <code>mineral, feature_type, status, elevation_m, accuracy_m, surveyor, survey_date, notes</code>. Rows outside Nigeria are rejected.</small>
+          <small>Columns <code>name, lat, lng</code> + optional <code>mineral, feature_type, status, ownership, elevation_m, accuracy_m, surveyor, survey_date, notes</code>. Rows outside Nigeria are rejected.</small>
         </label>
         <div id="import-result" class="result"></div>
 
@@ -204,8 +205,9 @@
         </div>
         <div class="two-col">
           <label>Status<select name="status"></select></label>
-          <label>Survey date<input type="date" name="survey_date"></label>
+          <label>Ownership<select name="ownership"></select></label>
         </div>
+        <label>Survey date<input type="date" name="survey_date"></label>
         <div class="two-col">
           <label>Elevation (m)<input name="elevation_m" inputmode="decimal"></label>
           <label>GPS accuracy (m)<input name="accuracy_m" inputmode="decimal"></label>
@@ -242,6 +244,7 @@
           <label>Holder<input name="holder" maxlength="160"></label>
           <label>Mineral<select name="mineral"></select></label>
         </div>
+        <label>Land ownership<select name="ownership"></select></label>
         <label>Notes<textarea name="notes" rows="3" maxlength="2000"></textarea></label>
         <p class="error" id="area-error"></p>
       </div>

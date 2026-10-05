@@ -15,6 +15,8 @@
     'Beacon / Pillar', 'Camp / Office', 'Processing site', 'Access point', 'Other',
   ],
   STATUSES: ['Exploration', 'Active', 'Suspended', 'Abandoned', 'Artisanal', 'Proposed'],
+  // Who holds the land. "Not yet known" is the default until it has been checked.
+  OWNERSHIP: ['Government-owned', 'Privately owned', 'Untouched / unclaimed', 'Not yet known'],
   // Mineral title types issued by the Nigerian Mining Cadastre Office (MCO).
   LICENCE_TYPES: [
     'Reconnaissance Permit (RP)',

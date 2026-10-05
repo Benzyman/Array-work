@@ -7,11 +7,11 @@
 (function () {
   'use strict';
 
-  const { boundary, admin, sampleSites, sampleArea } = window.CARDINAL_DATA;
+  const { boundary, admin, basemap, sampleSites, sampleArea } = window.CARDINAL_DATA;
   const constants = window.CardinalConstants;
   const geo = window.CardinalGeo(boundary, admin);
   const R = window.CardinalRecords(geo, constants);
-  const KEY = 'cardinalgis-demo-v1';
+  const KEY = 'cardinalgis-demo-v2';
 
   // ---------- storage ----------
 
@@ -65,6 +65,7 @@
       (!q.get('state') || s.state === q.get('state')) &&
       (!q.get('mineral') || s.mineral === q.get('mineral')) &&
       (!q.get('status') || s.status === q.get('status')) &&
+      (!q.get('ownership') || s.ownership === q.get('ownership')) &&
       (!term || [s.name, s.notes, s.lga, s.surveyor].some((v) => v && v.toLowerCase().includes(term))),
     ).sort(newestFirst).map((s) => ({ ...s }));
   }
@@ -82,6 +83,7 @@
       totalAreaHa: db.areas.reduce((t, a) => t + a.area_ha, 0),
       byMineral: count('mineral'),
       byState: count('state'),
+      byOwnership: count('ownership'),
     };
   }
 
@@ -98,12 +100,13 @@
     if (method === 'GET' && p === '/health') return json({ ok: true });
     if (method === 'GET' && p === '/meta') {
       return json({
-        minerals: constants.MINERALS, featureTypes: constants.FEATURE_TYPES, statuses: constants.STATUSES,
+        minerals: constants.MINERALS, featureTypes: constants.FEATURE_TYPES, statuses: constants.STATUSES, ownership: constants.OWNERSHIP,
         licenceTypes: constants.LICENCE_TYPES, bbox: geo.NIGERIA_BBOX, editorRequired: false,
         states: geo.states.map(({ id, name, capital, zone, lat, lng, bbox }) => ({ id, name, capital, zone, lat, lng, bbox })),
       });
     }
     if (method === 'GET' && p === '/boundary') return json(geo.boundary);
+    if (method === 'GET' && p === '/basemap') return json(basemap);
     if (method === 'GET' && p === '/locate') {
       const loc = geo.locate(Number(q.get('lat')), Number(q.get('lng')));
       return loc.valid ? json(loc) : json({ error: 'lat and lng must be valid numbers' }, 400);

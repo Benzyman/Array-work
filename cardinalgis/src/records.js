@@ -7,7 +7,7 @@
   'use strict';
 
   return function createRecords(geo, constants) {
-    const { MINERALS, FEATURE_TYPES, STATUSES, LICENCE_TYPES } = constants;
+    const { MINERALS, FEATURE_TYPES, STATUSES, LICENCE_TYPES, OWNERSHIP } = constants;
 
     // ---------- small validation helpers ----------
 
@@ -58,6 +58,7 @@
         feature_type: oneOf(body.feature_type, 'feature_type', FEATURE_TYPES, 'Mine site'),
         mineral: oneOf(body.mineral, 'mineral', MINERALS, 'Other'),
         status: oneOf(body.status, 'status', STATUSES, 'Exploration'),
+        ownership: oneOf(body.ownership, 'ownership', OWNERSHIP, 'Not yet known'),
         lat: Math.round(lat * 1e7) / 1e7,
         lng: Math.round(lng * 1e7) / 1e7,
         elevation_m: number(body.elevation_m, 'elevation_m', { min: -100, max: 3000 }),
@@ -92,6 +93,7 @@
         licence_type: oneOf(body.licence_type, 'licence_type', LICENCE_TYPES, LICENCE_TYPES[1]),
         licence_no: text(body.licence_no, 'licence_no', { max: 60 }),
         holder: text(body.holder, 'holder', { max: 160 }),
+        ownership: oneOf(body.ownership, 'ownership', OWNERSHIP, 'Not yet known'),
         mineral: oneOf(body.mineral, 'mineral', MINERALS, 'Other'),
         geometry: JSON.stringify(clean),
         area_ha: Math.round(geo.polygonAreaHa(clean) * 10000) / 10000,
@@ -115,7 +117,7 @@
       return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     }
 
-    const SITE_COLUMNS = ['id', 'name', 'feature_type', 'mineral', 'status', 'lat', 'lng', 'elevation_m', 'accuracy_m', 'state', 'lga', 'surveyor', 'survey_date', 'notes', 'created_at', 'updated_at'];
+    const SITE_COLUMNS = ['id', 'name', 'feature_type', 'mineral', 'status', 'ownership', 'lat', 'lng', 'elevation_m', 'accuracy_m', 'state', 'lga', 'surveyor', 'survey_date', 'notes', 'created_at', 'updated_at'];
 
     function sitesToCsv(sites) {
       const lines = [SITE_COLUMNS.join(',')];
@@ -130,13 +132,13 @@
     function toKml(sites, areas) {
       const desc = (obj, keys) => keys.filter((k) => obj[k] !== null && obj[k] !== undefined).map((k) => `${k}: ${obj[k]}`).join('\n');
       const placemarks = [
-        ...sites.map((s) => `    <Placemark><name>${xml(s.name)}</name><description>${xml(desc(s, ['feature_type', 'mineral', 'status', 'state', 'lga', 'surveyor', 'survey_date', 'notes']))}</description><Point><coordinates>${s.lng},${s.lat}${s.elevation_m != null ? ',' + s.elevation_m : ''}</coordinates></Point></Placemark>`),
+        ...sites.map((s) => `    <Placemark><name>${xml(s.name)}</name><description>${xml(desc(s, ['feature_type', 'mineral', 'status', 'ownership', 'state', 'lga', 'surveyor', 'survey_date', 'notes']))}</description><Point><coordinates>${s.lng},${s.lat}${s.elevation_m != null ? ',' + s.elevation_m : ''}</coordinates></Point></Placemark>`),
         ...areas.map((a) => {
           const rings = a.geometry.coordinates.map((ring, i) => {
             const tag = i === 0 ? 'outerBoundaryIs' : 'innerBoundaryIs';
             return `<${tag}><LinearRing><coordinates>${ring.map(([x, y]) => `${x},${y}`).join(' ')}</coordinates></LinearRing></${tag}>`;
           }).join('');
-          return `    <Placemark><name>${xml(a.name)}</name><description>${xml(desc(a, ['licence_type', 'licence_no', 'holder', 'mineral', 'area_ha', 'state', 'lga', 'notes']))}</description><Polygon>${rings}</Polygon></Placemark>`;
+          return `    <Placemark><name>${xml(a.name)}</name><description>${xml(desc(a, ['licence_type', 'licence_no', 'holder', 'ownership', 'mineral', 'area_ha', 'state', 'lga', 'notes']))}</description><Polygon>${rings}</Polygon></Placemark>`;
         }),
       ];
       return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n  <Document>\n    <name>CardinalGIS export</name>\n${placemarks.join('\n')}\n  </Document>\n</kml>\n`;

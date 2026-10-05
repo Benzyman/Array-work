@@ -17,6 +17,7 @@ function openDatabase(file) {
       feature_type TEXT    NOT NULL DEFAULT 'Mine site',
       mineral      TEXT    NOT NULL DEFAULT 'Other',
       status       TEXT    NOT NULL DEFAULT 'Exploration',
+      ownership    TEXT    NOT NULL DEFAULT 'Not yet known',
       lat          REAL    NOT NULL,
       lng          REAL    NOT NULL,
       elevation_m  REAL,
@@ -41,6 +42,7 @@ function openDatabase(file) {
       licence_type TEXT    NOT NULL DEFAULT 'Exploration Licence (EL)',
       licence_no   TEXT,
       holder       TEXT,
+      ownership    TEXT    NOT NULL DEFAULT 'Not yet known',
       mineral      TEXT    NOT NULL DEFAULT 'Other',
       geometry     TEXT    NOT NULL,
       area_ha      REAL    NOT NULL,
@@ -51,6 +53,14 @@ function openDatabase(file) {
       updated_at   TEXT    NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  // Databases created before the ownership field existed get the column added.
+  for (const table of ['sites', 'areas']) {
+    const columns = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+    if (!columns.includes('ownership')) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ownership TEXT NOT NULL DEFAULT 'Not yet known'`);
+    }
+  }
 
   return db;
 }

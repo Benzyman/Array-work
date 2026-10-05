@@ -9,3 +9,5 @@ const boundary = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'nigeria-boundar
 const admin = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'nigeria-admin.json'), 'utf8'));
 
 module.exports = createGeo(boundary, admin);
+// Rivers, lakes, towns and neighbour borders for drawing the offline map.
+module.exports.basemap = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'nigeria-basemap.json'), 'utf8'));

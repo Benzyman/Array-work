@@ -348,6 +348,34 @@ internet, or as a shared link), we built a version that runs entirely in the bro
 
 Run it with `npm run build:demo`.
 
+## Step 8⁹⁄₁₀: Ownership, ArcGIS maps and an offline reference map
+
+**Ownership field.** We added a column to both tables
+(`ownership TEXT NOT NULL DEFAULT 'Not yet known'`) and an allowed list in `constants.js`. Older
+databases are upgraded automatically: on start-up `db.js` checks `PRAGMA table_info` and runs
+`ALTER TABLE ... ADD COLUMN` if the column is missing. On the map each pin has two colours: the
+**fill** is the mineral and the **edge** is the ownership.
+
+**ArcGIS (Esri) base maps.** Esri publishes its maps as *tiles*, small square images at each zoom
+level. Leaflet loads them from a URL template:
+```js
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}')
+```
+Note that Esri's order is `{z}/{y}/{x}`, while most tile servers use `{z}/{x}/{y}`. "Satellite +
+labels" is a `L.layerGroup` of three tile layers stacked on top of each other: imagery,
+transportation, and boundaries and places.
+
+**Offline reference map.** `scripts/build-basemap.js` turns open datasets into one small JSON file:
+- **Borders:** Natural Earth 1:10m. This also replaced the rough outline in the "is it in Nigeria?"
+  check, which now uses a 2 km border tolerance computed as point-to-line distance.
+- **Rivers and lakes:** Natural Earth 1:50m. The data has no river names, so a river is named only
+  where it passes within 15 km of a town known to be on that river (Jebba and Onitsha for the
+  Niger; Makurdi and Yola for the Benue). We don't guess.
+- **Towns:** GeoNames, with state capitals matched by name.
+
+The app draws all this with Leaflet's *canvas renderer*, which is fast for hundreds of dots, and
+shows small towns only when you zoom in, so the map stays readable.
+
 ## Step 9: Testing
 
 Run `npm test`. The tests use Node's built-in runner (`node:test`), so there's nothing to install.
