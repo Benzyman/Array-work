@@ -37,6 +37,16 @@ npm start
 
 Open <http://localhost:3000>. Try **Data → Import sites from CSV** with `samples/sample-sites.csv`.
 
+### Offline demo (no server needed)
+```bash
+npm run build:demo
+```
+This creates `dist/CardinalGIS-demo.html`, the whole app in **one file**. Double-click it to open
+it in any browser, even with no internet. It comes with sample data, saves your changes in that
+browser, and has a **Reset** button. It uses exactly the same Nigeria checks and validation as
+the server (shared code in `src/geo-core.js` and `src/records.js`). Map images need internet;
+without it you still get the Nigeria outline, state names and all your data.
+
 ### Install it as an app
 - **Chrome or Edge on a computer:** click **Install** in the top bar, or the install icon in the address bar.
 - **Android (Chrome):** menu ⋮ → **Install app** (or **Add to Home screen**).
@@ -62,7 +72,9 @@ cardinalgis/
 ├── src/
 │   ├── app.js             API routes, validation, exports
 │   ├── db.js              SQLite tables
-│   ├── geo.js             Nigeria check, state/LGA lookup, area maths
+│   ├── geo-core.js        Nigeria check, state/LGA lookup, area maths (shared with the demo)
+│   ├── geo.js             loads the Nigeria data files for the server
+│   ├── records.js         validation + CSV/KML/GeoJSON export (shared with the demo)
 │   └── constants.js       minerals, statuses, licence types
 ├── data/
 │   ├── nigeria-boundary.geojson   national outline
@@ -74,6 +86,8 @@ cardinalgis/
 │   └── icons/             logo and app icons
 ├── test/                  automated tests (node:test)
 ├── samples/               sample CSV for practice
+├── demo/demo-api.js       in-browser stand-in for the server, used by the offline demo
+├── scripts/build-demo.js  builds the single-file offline demo into dist/
 └── Dockerfile             container image for deployment
 ```
 

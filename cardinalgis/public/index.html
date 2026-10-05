@@ -273,6 +273,39 @@
     </form>
   </dialog>
 
+  <!-- In-app confirmation (used instead of the browser's confirm() pop-up) -->
+  <dialog id="confirm-dialog" class="small-dialog">
+    <form method="dialog" id="confirm-form">
+      <div class="dlg-body">
+        <h2 id="confirm-title">Are you sure?</h2>
+        <p class="muted" id="confirm-text"></p>
+      </div>
+      <footer class="dlg-foot">
+        <button type="button" class="btn" id="confirm-no">Cancel</button>
+        <button type="submit" class="btn danger-fill" id="confirm-yes">Delete</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Shows a file's contents when the browser can't download it -->
+  <dialog id="file-dialog">
+    <form method="dialog">
+      <header class="dlg-head">
+        <div class="dlg-icon"><svg class="icon"><use href="#i-download"/></svg></div>
+        <h2 id="file-title">Export</h2>
+        <button type="button" class="icon-btn plain" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button>
+      </header>
+      <div class="dlg-body">
+        <p class="muted small">Downloads are blocked in this preview. Copy the contents below and save them as <b id="file-name"></b>, or open the offline demo file to download directly.</p>
+        <textarea id="file-text" rows="12" class="mono" readonly></textarea>
+      </div>
+      <footer class="dlg-foot">
+        <button type="button" class="btn" data-close>Close</button>
+        <button type="button" class="btn primary" id="file-copy">Copy</button>
+      </footer>
+    </form>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="/vendor/leaflet/leaflet.js"></script>

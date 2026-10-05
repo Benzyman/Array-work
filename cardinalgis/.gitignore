@@ -4,3 +4,4 @@ storage/
 *.db-shm
 *.db-wal
 .env
+dist/

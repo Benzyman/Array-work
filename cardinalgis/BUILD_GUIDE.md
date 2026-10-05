@@ -329,6 +329,25 @@ It needs three things:
 `app.js` registers the worker, and it listens for the browser's `beforeinstallprompt` event
 to show the **Install** button.
 
+## Step 8⅞: A single-file offline demo
+
+A web app normally needs its server. To show it working anywhere (on a laptop with no
+internet, or as a shared link), we built a version that runs entirely in the browser:
+
+1. **Share the rules, don't copy them.** The Nigeria check and area maths (`src/geo-core.js`)
+   and the validation and export code (`src/records.js`) were moved into modules that work in
+   both Node and the browser. This uses the "UMD" pattern: the file checks whether
+   `module.exports` exists (Node) and otherwise attaches itself to `window`.
+2. **Fake the server in the browser.** `demo/demo-api.js` replaces `window.fetch`, so when the
+   app asks for `/api/sites` the answer comes from code in the page. Records are kept in
+   `localStorage`. The app code (`app.js`) doesn't know the difference.
+3. **Bundle everything into one file.** `scripts/build-demo.js` reads `index.html` and swaps every
+   `<link>` and `<script src>` for the file's actual contents. Images and the font become
+   `data:` URIs, and the Nigeria data and sample records are embedded as JSON. The result is
+   one HTML file (about 670 KB) with no outside dependencies except the map images.
+
+Run it with `npm run build:demo`.
+
 ## Step 9: Testing
 
 Run `npm test`. The tests use Node's built-in runner (`node:test`), so there's nothing to install.

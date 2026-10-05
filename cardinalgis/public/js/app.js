@@ -89,7 +89,30 @@
     return geometry.coordinates.map((ring) => ring.slice(0, -1).map(([lng, lat]) => L.latLng(lat, lng)));
   }
 
+  // In-app replacement for window.confirm(): resolves true when the user confirms.
+  function askConfirm(title, text, okLabel = 'Delete') {
+    const dlg = $('#confirm-dialog');
+    $('#confirm-title').textContent = title;
+    $('#confirm-text').textContent = text;
+    $('#confirm-yes').textContent = okLabel;
+    dlg.showModal();
+    return new Promise((resolve) => {
+      const done = (answer) => {
+        $('#confirm-yes').onclick = null;
+        $('#confirm-no').onclick = null;
+        dlg.onclose = null;
+        if (dlg.open) dlg.close();
+        resolve(answer);
+      };
+      $('#confirm-yes').onclick = (e) => { e.preventDefault(); done(true); };
+      $('#confirm-no').onclick = () => done(false);
+      dlg.onclose = () => done(false);
+    });
+  }
+  window.CardinalConfirm = askConfirm;
+
   function download(filename, content, type) {
+    if (window.CardinalSaveFile) return window.CardinalSaveFile(filename, content, type);
     const url = URL.createObjectURL(new Blob([content], { type }));
     const a = Object.assign(document.createElement('a'), { href: url, download: filename });
     document.body.appendChild(a);
@@ -127,10 +150,42 @@
   baseLayers[savedBase in baseLayers ? savedBase : (isDarkTheme() ? 'Dark' : 'Light')].addTo(map);
   map.on('baselayerchange', (e) => storage('baseLayer', e.name));
 
+  // If map images can't be downloaded (no internet, blocked network) say so once,
+  // instead of leaving a blank map. The outline, state names and data still work.
+  let tileLoads = 0, tileErrors = 0, tileWarned = false;
+  Object.values(baseLayers).forEach((layer) => {
+    layer.on('tileload', () => { tileLoads++; });
+    layer.on('tileerror', () => {
+      if (++tileErrors >= 6 && tileLoads === 0 && !tileWarned) {
+        tileWarned = true;
+        toast('Map images need internet. Your data, the Nigeria outline and state names still work.', true);
+      }
+    });
+  });
+
   const sitesLayer = L.featureGroup().addTo(map);
   const areasLayer = L.featureGroup().addTo(map);
   const tempLayer = L.featureGroup().addTo(map);
-  L.control.layers(baseLayers, { 'Sites': sitesLayer, 'Licence areas': areasLayer }, { position: 'topright' }).addTo(map);
+  const stateLabels = L.layerGroup().addTo(map);
+  L.control.layers(baseLayers, { 'Sites': sitesLayer, 'Licence areas': areasLayer, 'State names': stateLabels }, { position: 'topright' }).addTo(map);
+
+  // State names at each state's centre, from the built-in data (works offline).
+  function addStateLabels(states) {
+    for (const st of states) {
+      const name = st.name === 'Federal Capital Territory' ? 'FCT' : st.name;
+      L.marker([st.lat, st.lng], {
+        interactive: false, keyboard: false,
+        icon: L.divIcon({ className: 'state-label', html: `<span>${esc(name)}</span>`, iconSize: null }),
+      }).addTo(stateLabels);
+    }
+  }
+  // Show them between zoom 6 and 9: further out they overlap, closer in they get in the way.
+  function updateLabelZoom() {
+    const z = map.getZoom();
+    map.getContainer().classList.toggle('labels-off', z < 6 || z > 9);
+  }
+  map.on('zoomend', updateLabelZoom);
+  updateLabelZoom();
   L.control.scale({ imperial: false }).addTo(map);
 
   // North arrow
@@ -440,7 +495,7 @@
       <div class="pop-actions">
         <button class="primary" data-action="edit-site" data-id="${s.id}">Edit</button>
         <button data-action="copy" data-text="${esc(d.dd)}">Copy lat/lng</button>
-        <button data-action="directions" data-lat="${s.lat}" data-lng="${s.lng}">Directions</button>
+        <a href="https://www.google.com/maps/dir/?api=1&amp;destination=${s.lat},${s.lng}" target="_blank" rel="noopener">Directions</a>
         <button class="danger" data-action="delete-site" data-id="${s.id}">Delete</button>
       </div>`;
   }
@@ -652,16 +707,18 @@
         openSiteForm(state.sites.find((s) => s.id === id));
       } else if (action === 'delete-site') {
         const s = state.sites.find((x) => x.id === id);
-        if (!confirm(`Delete site “${s.name}”? This cannot be undone.`)) return;
+        if (!(await askConfirm('Delete this site?', `“${s.name}” will be removed. This cannot be undone.`))) return;
         await api('DELETE', `/api/sites/${id}`);
         map.closePopup();
         toast('Site deleted');
         await refresh();
       } else if (action === 'copy') {
-        await navigator.clipboard.writeText(btn.dataset.text);
-        toast('Copied ' + btn.dataset.text);
-      } else if (action === 'directions') {
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${btn.dataset.lat},${btn.dataset.lng}`, '_blank', 'noopener');
+        try {
+          await navigator.clipboard.writeText(btn.dataset.text);
+          toast('Copied ' + btn.dataset.text);
+        } catch {
+          toast('Copying is blocked here. Coordinates: ' + btn.dataset.text, true);
+        }
       } else if (action === 'edit-area') {
         map.closePopup();
         openAreaForm(state.areas.find((a) => a.id === id));
@@ -678,7 +735,7 @@
         download(`${area.name.replace(/[^\w-]+/g, '_')}_corners.csv`, cornersCsv(area), 'text/csv');
       } else if (action === 'delete-area') {
         const a = state.areas.find((x) => x.id === id);
-        if (!confirm(`Delete area “${a.name}”? This cannot be undone.`)) return;
+        if (!(await askConfirm('Delete this area?', `“${a.name}” will be removed. This cannot be undone.`))) return;
         await api('DELETE', `/api/areas/${id}`);
         map.closePopup();
         toast('Area deleted');
@@ -893,7 +950,7 @@
     $('#btn-install').hidden = true;
   });
   window.addEventListener('appinstalled', () => toast('CardinalGIS installed'));
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  if (!window.CARDINAL_DATA && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 
@@ -912,6 +969,7 @@
     state.meta = await api('GET', '/api/meta');
     $('#f-state').innerHTML += state.meta.states.map((s) => `<option>${esc(s.name)}</option>`).join('');
     $('#f-mineral').innerHTML += state.meta.minerals.map((m) => `<option>${esc(m)}</option>`).join('');
+    addStateLabels(state.meta.states);
     $$('.system-select').forEach(fillSystemSelect);
     setSiteSystem(siteForm.elements.system.value, null);
     updateConverterLabels();

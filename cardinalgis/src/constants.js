@@ -1,5 +1,9 @@
 // Pick-lists shown in the app. Edit these to suit your team.
-module.exports = {
+// Shared by the server and the offline demo.
+(function (root, data) {
+  if (typeof module === 'object' && module.exports) module.exports = data;
+  else root.CardinalConstants = data;
+})(typeof self !== 'undefined' ? self : this, {
   MINERALS: [
     'Gold', 'Lead/Zinc', 'Tin (Cassiterite)', 'Columbite', 'Tantalite', 'Lithium',
     'Barite', 'Limestone', 'Iron Ore', 'Coal', 'Bitumen', 'Gemstones', 'Kaolin',
@@ -21,4 +25,4 @@ module.exports = {
     'Water Use Permit (WUP)',
     'Field block / Survey area',
   ],
-};
+});
