@@ -1,0 +1,22 @@
+{
+  "name": "nigeria-mining-map",
+  "version": "1.0.0",
+  "description": "Mining coordinate & field mapping platform for Nigeria",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --watch --disable-warning=ExperimentalWarning server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.22.3",
+    "leaflet": "^1.9.4",
+    "leaflet-draw": "^1.0.4",
+    "proj4": "^2.22.0"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "private": true
+}
