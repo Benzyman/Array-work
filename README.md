@@ -20,3 +20,13 @@ public static int[] rotLeft(int[] a, int d) {
 
     return rotatedArray;
 }
+
+---
+
+# CardinalGIS (`cardinalgis/`)
+
+An installable web app for mining coordinates and field mapping in Nigeria: mine sites, sample
+points, licence boundaries, UTM and Minna belt conversions, and CSV/GeoJSON/KML export.
+
+- How to run it: [cardinalgis/README.md](cardinalgis/README.md)
+- How it was built, step by step: [cardinalgis/BUILD_GUIDE.md](cardinalgis/BUILD_GUIDE.md)

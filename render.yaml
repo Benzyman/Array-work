@@ -1,0 +1,22 @@
+# Render "Blueprint": in the Render dashboard choose New → Blueprint and
+# point it at this repository. See cardinalgis/BUILD_GUIDE.md, step 10.
+services:
+  - type: web
+    name: cardinalgis
+    runtime: node
+    rootDir: cardinalgis
+    plan: starter          # a persistent disk needs a paid plan
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATA_DIR
+        value: /var/data
+      - key: EDITOR_TOKEN
+        generateValue: true   # Render makes a random key; copy it from the dashboard
+    disk:
+      name: mining-data
+      mountPath: /var/data
+      sizeGB: 1

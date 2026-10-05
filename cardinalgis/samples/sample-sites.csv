@@ -1,0 +1,11 @@
+name,lat,lng,mineral,feature_type,status,notes,ownership
+Anka gold field (demo),12.11,5.93,Gold,Mine site,Artisanal,Approximate location for practice only,Untouched / unclaimed
+Bukuru tin field (demo),9.79,8.87,Tin (Cassiterite),Mine site,Active,Approximate location for practice only,Privately owned
+Enyigba lead-zinc (demo),6.20,8.15,Lead/Zinc,Mine site,Active,Approximate location for practice only,Government-owned
+Ewekoro limestone (demo),6.93,3.21,Limestone,Mine site,Active,Approximate location for practice only,Privately owned
+Itakpe iron ore (demo),7.60,6.32,Iron Ore,Mine site,Suspended,Approximate location for practice only,Government-owned
+Okaba coal (demo),7.45,7.75,Coal,Mine site,Exploration,Approximate location for practice only,Government-owned
+Agbabu bitumen (demo),6.60,4.83,Bitumen,Outcrop,Exploration,Approximate location for practice only,Untouched / unclaimed
+Azara barite (demo),8.37,9.25,Barite,Mine site,Artisanal,Approximate location for practice only,Privately owned
+Ijero pegmatite (demo),7.81,5.07,Tantalite,Pit / Shaft,Artisanal,Approximate location for practice only,Untouched / unclaimed
+Outside Nigeria - should be rejected,6.37,2.42,Gold,Mine site,Exploration,Cotonou - this row is meant to fail,Not yet known
