@@ -121,4 +121,4 @@ The original site could not be fetched from the build environment, so the conten
 - **Replace the article bodies** in `src/data/insights.ts` with the full original text. The titles and themes match the original articles, but the bodies are condensed rewrites.
 - **Replace the illustrative figures:** the borehole log values in the hero are labelled "Illustrative data". Swap in a real (anonymised) log if you have one.
 - **Add real photos:** see section 6. Leadership portraits currently use initials.
-- **Logo file:** the current logo is a 378×102 PNG. An SVG or a larger PNG (at least 1000px wide) would look sharper on high-resolution screens.
+- **Logo file:** the logo is a high-resolution transparent PNG (900px wide on the site, cut down from a 1350px original), which is sharp on retina screens. A true vector version (SVG, AI, EPS or PDF from the original designer) would be ideal for future use.
