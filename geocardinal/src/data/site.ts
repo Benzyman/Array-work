@@ -3,6 +3,7 @@ export const site = {
   shortName: 'Geocardinal',
   url: 'https://www.geocardinalengineering.com',
   founded: 2010,
+  rcNumber: '984278',
   tagline: 'Geotechnical, mining and energy engineering — from first sample to steady-state production.',
   description:
     'Geocardinal Engineering Services is an Abuja-based engineering consultancy solving geotechnical, mining and energy challenges across Oil & Gas, Solid Minerals, Civil Engineering and Mining.',

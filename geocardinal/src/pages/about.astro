@@ -4,6 +4,8 @@ import PageHero from '../components/PageHero.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import CtaBand from '../components/CtaBand.astro';
 import Icon from '../components/Icon.astro';
+import Photo from '../components/Photo.astro';
+import { aboutImage } from '../data/media';
 import { site, values, sectors, offices } from '../data/site';
 import { leadership } from '../data/team';
 
@@ -55,6 +57,10 @@ const approach = [
           We believe in being a trustworthy company that builds lasting, mutually beneficial partnerships, and we are known for our commitment to high ethical standards of corporate governance and professionalism in every aspect of our work.
         </p>
       </div>
+    </div>
+
+    <div class="container about-photo" data-reveal>
+      <Photo media={aboutImage} ratio="21 / 9" seed={12} />
     </div>
 
     <div class="container">
@@ -152,6 +158,10 @@ const approach = [
   .statement em {
     font-style: normal;
     color: var(--text);
+  }
+
+  .about-photo {
+    margin-top: clamp(3rem, 2rem + 3vw, 5rem);
   }
 
   .facts {

@@ -198,9 +198,9 @@ textarea {
 
 .eyebrow::before {
   content: '';
-  width: 1.25rem;
-  height: 1px;
-  background: var(--accent);
+  width: 1.5rem;
+  height: 2px;
+  background: var(--brand-rule);
 }
 
 .on-dark .eyebrow,
@@ -840,6 +840,30 @@ textarea {
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   color: var(--accent);
+}
+
+.icon-tile--red {
+  background: var(--cardinal-50);
+  border-color: var(--cardinal-100);
+  color: var(--cardinal-500);
+}
+
+.icon-tile--green {
+  background: var(--green-50);
+  border-color: var(--green-100);
+  color: var(--green-600);
+}
+
+.icon-tile--yellow {
+  background: #fdfbe4;
+  border-color: #f3eca4;
+  color: var(--yellow-600);
+}
+
+.icon-tile--ink {
+  background: var(--ink-900);
+  border-color: var(--ink-900);
+  color: var(--yellow-300);
 }
 
 .icon-tile .icon {

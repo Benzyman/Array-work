@@ -7,13 +7,12 @@ import { site, offices } from '../data/site';
 interface Props {
   title?: string;
   description?: string;
-  headerTone?: 'light' | 'dark';
   /** Extra JSON-LD objects for this page */
   schema?: Record<string, unknown>[];
   noindex?: boolean;
 }
 
-const { title, description = site.description, headerTone = 'light', schema = [], noindex = false } = Astro.props;
+const { title, description = site.description, schema = [], noindex = false } = Astro.props;
 const fullTitle = title ? `${title} — ${site.shortName} Engineering` : `${site.shortName} Engineering Services | Geotechnical & Mining Engineering Consultancy`;
 const canonical = new URL(Astro.url.pathname, site.url).href;
 const head = offices[0];
@@ -23,7 +22,7 @@ const orgSchema = {
   '@type': 'ProfessionalService',
   name: site.name,
   url: site.url,
-  logo: `${site.url}/favicon.svg`,
+  logo: `${site.url}/brand/geocardinal-logo.png`,
   email: site.email,
   telephone: site.phones[0],
   foundingDate: String(site.founded),
@@ -49,8 +48,11 @@ const orgSchema = {
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex" />}
-    <meta name="theme-color" content="#0d1420" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta property="og:image" content={new URL('/brand/geocardinal-logo.png', site.url).href} />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/favicon-64.png" sizes="64x64" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={site.name} />
@@ -71,7 +73,7 @@ const orgSchema = {
   </head>
   <body>
     <a href="#main" class="skip-link">Skip to content</a>
-    <Header tone={headerTone} />
+    <Header />
     <main id="main" tabindex="-1">
       <slot />
     </main>

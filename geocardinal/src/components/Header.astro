@@ -4,12 +4,6 @@ import Icon from './Icon.astro';
 import { primaryNav, site, telHref } from '../data/site';
 import { services, stages } from '../data/services';
 
-interface Props {
-  /** Visual tone of the page's top section, so the header can sit on top of it. */
-  tone?: 'light' | 'dark';
-}
-
-const { tone = 'light' } = Astro.props;
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href: string) => path === href || path.startsWith(href + '/');
 
@@ -18,9 +12,9 @@ const grouped = stages
   .filter((g) => g.items.length);
 ---
 
-<header class="header" data-tone={tone} data-header>
+<header class="header" data-header>
   <div class="container header__bar">
-    <Logo tone={tone === 'dark' ? 'dark' : 'light'} class="header__logo" />
+    <Logo class="header__logo" />
 
     <nav class="header__nav" aria-label="Primary">
       <ul role="list" class="nav">
@@ -203,44 +197,34 @@ const grouped = stages
   .header {
     --header-fg: var(--ink-900);
     --header-muted: var(--stone-600);
-    --header-bg: rgba(251, 250, 247, 0);
-    --header-border: transparent;
     position: sticky;
     top: 0;
     z-index: var(--z-header);
     height: var(--header-h);
     margin-bottom: calc(var(--header-h) * -1);
     color: var(--header-fg);
-    transition:
-      background-color var(--dur-base) var(--ease-out),
-      border-color var(--dur-base) var(--ease-out),
-      color var(--dur-base) var(--ease-out);
-    background: var(--header-bg);
-    border-bottom: 1px solid var(--header-border);
-  }
-
-  .header[data-tone='dark'] {
-    --header-fg: var(--text-on-dark);
-    --header-muted: var(--text-on-dark-muted);
-  }
-
-  .header[data-scrolled],
-  .header[data-drawer-open] {
-    --header-fg: var(--ink-900);
-    --header-muted: var(--stone-600);
-    --header-bg: rgba(251, 250, 247, 0.86);
-    --header-border: var(--border);
+    background: #fff;
     backdrop-filter: saturate(1.6) blur(14px);
     -webkit-backdrop-filter: saturate(1.6) blur(14px);
+    border-bottom: 1px solid var(--border);
+    transition: box-shadow var(--dur-base) var(--ease-out);
+  }
+
+  /* Tri-colour brand rule along the top edge */
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--brand-rule);
+  }
+
+  .header[data-scrolled] {
+    box-shadow: 0 8px 24px -16px rgba(27, 25, 21, 0.25);
   }
 
   .header[data-drawer-open] {
-    --header-bg: var(--bg);
-  }
-
-  .header :global(.logo) {
-    color: var(--header-fg);
-    --logo-bg: transparent;
+    background: var(--surface);
   }
 
   .header__bar {

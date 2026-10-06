@@ -4,6 +4,8 @@ import PageHero from '../../components/PageHero.astro';
 import ServiceCard from '../../components/ServiceCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import Icon from '../../components/Icon.astro';
+import Photo from '../../components/Photo.astro';
+import { serviceImages } from '../../data/media';
 import { services, stages, type Service } from '../../data/services';
 import { sectors, site, telHref } from '../../data/site';
 
@@ -25,6 +27,7 @@ const related = services
   .slice(0, 3)
   .map((x) => x.s);
 
+const banner = serviceImages[service.slug];
 const idx = services.findIndex((s) => s.slug === service.slug);
 const prev = services[(idx - 1 + services.length) % services.length];
 const next = services[(idx + 1) % services.length];
@@ -61,6 +64,7 @@ const schema = {
   <section class="section detail">
     <div class="container detail__grid">
       <div class="detail__main">
+        {banner && <Photo media={banner} ratio="16 / 8" eager seed={service.title.length} />}
         <div class="prose" data-reveal>
           {service.overview.map((p) => <p>{p}</p>)}
         </div>

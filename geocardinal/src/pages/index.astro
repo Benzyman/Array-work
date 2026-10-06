@@ -6,10 +6,13 @@ import BoreholeLog from '../components/BoreholeLog.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import InsightCard from '../components/InsightCard.astro';
 import CtaBand from '../components/CtaBand.astro';
+import Photo from '../components/Photo.astro';
+import { heroImage, fieldGallery } from '../data/media';
 import { site, sectors, commodities, offices, values } from '../data/site';
 import { services, stages } from '../data/services';
 import { insights } from '../data/insights';
 
+const sectorTint = ['red', 'green', 'yellow', 'ink'];
 const years = new Date().getFullYear() - site.founded;
 const stats = [
   { value: `${years}+`, label: 'Years in practice', note: `Established ${site.founded}` },
@@ -19,9 +22,10 @@ const stats = [
 ];
 ---
 
-<Base headerTone="dark">
+<Base>
   <!-- Hero -->
   <section class="hero on-dark" aria-labelledby="hero-title">
+    {heroImage.src && <img class="hero__photo" src={heroImage.src} alt="" fetchpriority="high" />}
     <div class="hero__bg">
       <Topo />
     </div>
@@ -65,7 +69,7 @@ const stats = [
           sectors.map((s, i) => (
             <li class="sector" data-reveal style={`--reveal-i:${i}`}>
               <span class="sector__num mono">0{i + 1}</span>
-              <span class="icon-tile">
+              <span class={`icon-tile icon-tile--${sectorTint[i]}`}>
                 <Icon name={s.icon} />
               </span>
               <h3 class="sector__name">{s.name}</h3>
@@ -78,6 +82,20 @@ const stats = [
           ))
         }
       </ul>
+    </div>
+  </section>
+
+  <!-- In the field -->
+  <section class="section section--tight-top" aria-labelledby="field-title">
+    <div class="container">
+      <SectionHeader id="field-title" eyebrow="In the field" title="Where the work happens." align="split" lede="From exploration camps and drill sites to open pits and the laboratory — our engineers and geologists work where the data is made." />
+      <div class="gallery">
+        {fieldGallery.map((m, i) => (
+          <div class={`gallery__item gallery__item--${i}`} data-reveal style={`--reveal-i:${i}`}>
+            <Photo media={m} ratio={i === 0 ? '4 / 5' : '4 / 3'} seed={i * 7 + 3} />
+          </div>
+        ))}
+      </div>
     </div>
   </section>
 
@@ -165,7 +183,7 @@ const stats = [
       <dl class="stats">
         {
           stats.map((s, i) => (
-            <div class="stat" data-reveal style={`--reveal-i:${i}`}>
+            <div class={`stat stat--${['red', 'green', 'red', 'green'][i]}`} data-reveal style={`--reveal-i:${i}`}>
               <dt class="stat__label">{s.label}</dt>
               <dd class="stat__value">{s.value}</dd>
               <dd class="stat__note">{s.note}</dd>
@@ -256,10 +274,20 @@ const stats = [
     padding-top: calc(var(--header-h) + clamp(2.5rem, 1rem + 6vw, 7rem));
     padding-bottom: clamp(4rem, 2rem + 6vw, 8rem);
     background:
-      radial-gradient(80% 60% at 85% 10%, rgba(199, 54, 43, 0.16), transparent 60%),
-      radial-gradient(60% 50% at 0% 100%, rgba(184, 115, 58, 0.1), transparent 60%),
+      radial-gradient(80% 60% at 85% 10%, rgba(196, 16, 38, 0.24), transparent 60%),
+      radial-gradient(60% 55% at 0% 100%, rgba(46, 158, 106, 0.2), transparent 60%),
       var(--ink-900);
     color: var(--text-on-dark);
+  }
+
+  .hero__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.32;
+    mix-blend-mode: luminosity;
   }
 
   .hero__bg {
@@ -292,7 +320,7 @@ const stats = [
 
   .hero__title span {
     display: block;
-    color: var(--text-on-dark-muted);
+    color: var(--yellow-300);
   }
 
   .hero__lede {
@@ -337,7 +365,15 @@ const stats = [
     width: 4px;
     height: 4px;
     border-radius: 50%;
+    background: var(--green-300);
+  }
+
+  .hero__offices li:nth-child(3n + 1)::before {
     background: var(--cardinal-400);
+  }
+
+  .hero__offices li:nth-child(3n + 2)::before {
+    background: var(--yellow-300);
   }
 
   .hero__visual {
@@ -467,6 +503,37 @@ const stats = [
     }
     .sectors__grid {
       border-right: 1px solid var(--border);
+    }
+  }
+
+  /* ---------------- Gallery ---------------- */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .gallery__item--0 {
+    grid-column: 1 / -1;
+  }
+
+  .gallery__item--0 :global(.photo) {
+    aspect-ratio: 16 / 10;
+  }
+
+  @media (min-width: 60rem) {
+    .gallery {
+      grid-template-columns: 1.3fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: var(--space-4);
+    }
+    .gallery__item--0 {
+      grid-column: 1;
+      grid-row: 1 / 3;
+    }
+    .gallery__item--0 :global(.photo) {
+      aspect-ratio: auto;
+      height: 100%;
     }
   }
 
@@ -633,8 +700,29 @@ const stats = [
     transition: background-color var(--dur-base) var(--ease-out);
   }
 
+  .stage:nth-child(3n + 2) .stage__dot {
+    border-color: var(--yellow-300);
+  }
+
+  .stage:nth-child(3n) .stage__dot {
+    border-color: var(--green-300);
+  }
+
   .stage:hover .stage__dot {
-    background: var(--cardinal-400);
+    background: currentColor;
+    border-color: currentColor;
+  }
+
+  .stage:nth-child(3n + 1) {
+    color: var(--cardinal-400);
+  }
+
+  .stage:nth-child(3n + 2) {
+    color: var(--yellow-300);
+  }
+
+  .stage:nth-child(3n) {
+    color: var(--green-300);
   }
 
   .stage__num {
@@ -720,6 +808,14 @@ const stats = [
     letter-spacing: -0.04em;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+  }
+
+  .stat--red .stat__value {
+    color: var(--cardinal-500);
+  }
+
+  .stat--green .stat__value {
+    color: var(--green-600);
   }
 
   .stat__note {

@@ -1,0 +1,136 @@
+---
+import Topo from './Topo.astro';
+import Icon from './Icon.astro';
+import type { Media } from '../data/media';
+
+interface Props {
+  media: Media;
+  ratio?: string;
+  class?: string;
+  eager?: boolean;
+  showCaption?: boolean;
+  seed?: number;
+}
+
+const { media, ratio = '4 / 3', class: className, eager = false, showCaption = true, seed = 1 } = Astro.props;
+const tint = media.tint ?? 'ink';
+---
+
+<figure class:list={['photo', `photo--${tint}`, { 'photo--empty': !media.src }, className]} style={`--ratio:${ratio}`}>
+  {
+    media.src ? (
+      <img src={media.src} alt={media.alt} loading={eager ? 'eager' : 'lazy'} decoding="async" fetchpriority={eager ? 'high' : 'auto'} />
+    ) : (
+      <div class="photo__fallback" role="img" aria-label={media.alt}>
+        <Topo seed={seed} animate={false} width={800} height={600} summits={[{ x: 560, y: 180, rings: 14, spacing: 26, start: 10 }]} />
+        <span class="photo__icon" aria-hidden="true"><Icon name="mountain" /></span>
+      </div>
+    )
+  }
+  {
+    showCaption && (
+      <figcaption class="photo__caption">
+        <span class="photo__dot" aria-hidden="true" />
+        {media.caption}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .photo {
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+    aspect-ratio: var(--ratio);
+    border-radius: var(--radius-lg);
+    background: var(--ink-900);
+    isolation: isolate;
+  }
+
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--ease-out);
+  }
+
+  .photo:hover img {
+    transform: scale(1.04);
+  }
+
+  /* Gradient under the caption keeps it legible on any photo */
+  .photo:not(.photo--empty)::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 0;
+    background: linear-gradient(transparent, rgba(8, 12, 20, 0.6));
+    pointer-events: none;
+  }
+
+  .photo__fallback {
+    position: absolute;
+    inset: 0;
+    color: rgba(255, 255, 255, 0.16);
+    background: var(--fb-bg);
+  }
+
+  .photo--ink { --fb-bg: radial-gradient(120% 90% at 85% 10%, rgba(46, 158, 106, 0.25), transparent 60%), var(--ink-900); --dot: var(--green-300); }
+  .photo--red { --fb-bg: radial-gradient(120% 90% at 85% 10%, rgba(255, 255, 255, 0.12), transparent 60%), linear-gradient(160deg, #c41026, #6e0915); --dot: var(--yellow-300); }
+  .photo--green { --fb-bg: radial-gradient(120% 90% at 85% 10%, rgba(245, 236, 128, 0.22), transparent 60%), linear-gradient(160deg, #2e9e6a, #164d33); --dot: var(--yellow-300); }
+  .photo--yellow { --fb-bg: radial-gradient(120% 90% at 85% 10%, rgba(255, 255, 255, 0.5), transparent 60%), linear-gradient(160deg, #f5ec80, #c9b833); --dot: var(--cardinal-500); }
+
+  .photo--yellow .photo__fallback {
+    color: rgba(27, 25, 21, 0.18);
+  }
+
+  .photo__icon {
+    position: absolute;
+    left: var(--space-5);
+    top: var(--space-5);
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
+
+  .photo--yellow .photo__icon {
+    background: rgba(27, 25, 21, 0.1);
+    color: var(--stone-900);
+  }
+
+  .photo__icon :global(.icon) {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .photo__caption {
+    position: absolute;
+    left: var(--space-4);
+    bottom: var(--space-4);
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: var(--radius-full);
+    background: rgba(8, 12, 20, 0.62);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .photo__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--dot, var(--yellow-300));
+  }
+</style>

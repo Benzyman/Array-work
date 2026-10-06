@@ -4,14 +4,31 @@
    ========================================================================== */
 
 :root {
-  /* --- Brand ------------------------------------------------------------ */
-  --cardinal-50: #fcf1ef;
-  --cardinal-100: #f8dcd8;
-  --cardinal-200: #efb3aa;
-  --cardinal-400: #dc5a4b;
-  --cardinal-500: #c7362b; /* primary accent */
-  --cardinal-600: #a92a21; /* hover / pressed, AA on white */
-  --cardinal-700: #86211a;
+  /* --- Brand (sampled from the Geocardinal logo) ------------------------ */
+  /* Red – "GEOCARDINAL" */
+  --cardinal-50: #fdf0f1;
+  --cardinal-100: #fad7db;
+  --cardinal-200: #f3a9b2;
+  --cardinal-400: #e04558;
+  --cardinal-500: #c41026; /* primary accent */
+  --cardinal-600: #a20d20; /* hover / pressed */
+  --cardinal-700: #7f0a19;
+
+  /* Green – "ENGINEERING" */
+  --green-50: #ecf7f1;
+  --green-100: #d2eedf;
+  --green-300: #7fcaa3;
+  --green-500: #2e9e6a;
+  --green-600: #23804f; /* AA text on white */
+  --green-700: #1b6340;
+
+  /* Yellow – the emblem's triangle */
+  --yellow-300: #f5ec80;
+  --yellow-400: #ece05a;
+  --yellow-600: #8a7d00;
+
+  /* Tri-colour brand rule, used sparingly as a signature */
+  --brand-rule: linear-gradient(90deg, var(--cardinal-500) 0 33.3%, var(--yellow-400) 33.3% 66.6%, var(--green-500) 66.6% 100%);
 
   /* Laterite – the secondary earth tone, used sparingly for data & strata */
   --laterite-100: #f5e6d6;
