@@ -1,0 +1,368 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import FormField from '../components/FormField.astro';
+import Icon from '../components/Icon.astro';
+import { roles, benefits } from '../data/careers';
+import { site } from '../data/site';
+
+const jobSchemas = roles.map((r) => ({
+  '@context': 'https://schema.org',
+  '@type': 'JobPosting',
+  title: r.title,
+  description: `${r.summary} Responsibilities: ${r.responsibilities.join('; ')}. Requirements: ${r.requirements.join('; ')}.`,
+  employmentType: 'FULL_TIME',
+  hiringOrganization: { '@type': 'Organization', name: site.name, sameAs: site.url },
+  jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: r.location, addressCountry: 'NG' } },
+}));
+---
+
+<Base title="Careers" description="Join Geocardinal Engineering Services. Explore open roles for mining engineers and geologists and build your career on real projects across Nigeria and beyond." schema={jobSchemas}>
+  <PageHero
+    eyebrow="Careers"
+    title="Build your career on real ground."
+    lede="Work alongside senior engineers and geoscientists on live exploration, design and operations projects — and help build Africa’s mining capability."
+    crumbs={[{ label: 'Careers' }]}
+    seed={52}
+  >
+    <a href="#roles" class="btn btn--primary">View open roles <span class="badge badge--accent count">{roles.length}</span></a>
+  </PageHero>
+
+  <section class="section" aria-labelledby="why-title">
+    <div class="container">
+      <SectionHeader id="why-title" eyebrow="Why Geocardinal" title="Grow faster, with the right people around you." align="split" lede="We value talent cultivation and encourage creative innovation — every hire is an investment in the firm’s future." />
+      <ul role="list" class="benefits">
+        {
+          benefits.map((b, i) => (
+            <li class="benefit" data-reveal style={`--reveal-i:${i}`}>
+              <span class="icon-tile"><Icon name={b.icon} /></span>
+              <h3>{b.title}</h3>
+              <p>{b.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--subtle" id="roles" aria-labelledby="roles-title">
+    <div class="container container--narrow">
+      <div class="roles__head">
+        <p class="eyebrow">Open roles</p>
+        <h2 id="roles-title">{roles.length} open {roles.length === 1 ? 'position' : 'positions'}</h2>
+      </div>
+
+      {
+        roles.length === 0 ? (
+          <div class="no-roles">
+            <Icon name="briefcase" />
+            <p>There are no open roles right now — but we’d still like to hear from you. Send a speculative application below.</p>
+          </div>
+        ) : (
+          <ul role="list" class="roles">
+            {roles.map((r) => (
+              <li>
+                <details class="role card">
+                  <summary class="role__summary">
+                    <span class="role__main">
+                      <span class="role__title">{r.title}</span>
+                      <span class="role__meta">
+                        <span><Icon name="briefcase" /> {r.team}</span>
+                        <span><Icon name="map-pin" /> {r.location}</span>
+                        <span><Icon name="clock" /> {r.type}</span>
+                      </span>
+                    </span>
+                    <span class="role__toggle" aria-hidden="true"><Icon name="chevron-down" /></span>
+                  </summary>
+                  <div class="role__body">
+                    <p class="role__lede">{r.summary}</p>
+                    <div class="role__cols">
+                      <div>
+                        <h3>What you’ll do</h3>
+                        <ul>{r.responsibilities.map((x) => <li>{x}</li>)}</ul>
+                      </div>
+                      <div>
+                        <h3>What you’ll bring</h3>
+                        <ul>{r.requirements.map((x) => <li>{x}</li>)}</ul>
+                      </div>
+                    </div>
+                    <a href="#apply" class="btn btn--primary" data-apply={r.title}>
+                      Apply for this role <Icon name="arrow-right" class="icon--arrow" />
+                    </a>
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section" id="apply" aria-labelledby="apply-title">
+    <div class="container container--narrow">
+      <div class="apply card">
+        <div class="apply__head">
+          <p class="eyebrow">Apply</p>
+          <h2 id="apply-title">Send your application</h2>
+          <p>Tell us about yourself and include a link to your CV (Google Drive, Dropbox or LinkedIn). We review every application.</p>
+        </div>
+
+        <form data-form data-success="apply-success" data-endpoint={site.formEndpoint} data-mailto={site.careersEmail} data-subject="Job application" class="form" novalidate>
+          <div class="alert alert--error" data-summary hidden role="alert"><Icon name="alert" /><span></span></div>
+          <div class="form__row">
+            <FormField name="name" label="Full name" required autocomplete="name" />
+            <FormField name="email" label="Email" type="email" required autocomplete="email" />
+          </div>
+          <div class="form__row">
+            <FormField name="phone" label="Phone" type="tel" autocomplete="tel" />
+            <FormField
+              name="role"
+              label="Role"
+              type="select"
+              required
+              placeholder="Choose a role"
+              options={[...roles.map((r) => ({ value: r.title, label: r.title })), { value: 'Speculative application', label: 'Speculative application' }]}
+            />
+          </div>
+          <FormField name="cv_link" label="Link to CV" type="url" required placeholder="https://" hint="A public or shareable link to your CV or LinkedIn profile." />
+          <FormField name="message" label="Cover note" type="textarea" maxlength={1500} rows={4} placeholder="Relevant experience, professional registrations and availability." />
+          <div class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="company_website" tabindex="-1" autocomplete="off" /></label></div>
+          <div class="alert alert--error" data-form-error hidden tabindex="-1" role="alert">
+            <Icon name="alert" />
+            <div>
+              <p class="alert__title">Your application wasn’t sent</p>
+              <p>Please try again, or email <a href={`mailto:${site.careersEmail}`}>{site.careersEmail}</a>.</p>
+            </div>
+          </div>
+          <div>
+            <button type="submit" class="btn btn--primary btn--lg">Submit application <Icon name="arrow-right" class="icon--arrow" /></button>
+          </div>
+        </form>
+
+        <div id="apply-success" class="success" hidden tabindex="-1" role="status">
+          <span class="success__icon"><Icon name="check" /></span>
+          <h2>Application received</h2>
+          <p data-mode="endpoint">Thank you for your interest in Geocardinal. Our team will review your application and contact shortlisted candidates.</p>
+          <p data-mode="mailto" hidden>Your email app should now be open with your application ready to send. If nothing opened, email <a href={`mailto:${site.careersEmail}`}>{site.careersEmail}</a>.</p>
+          <button type="button" class="btn btn--secondary" data-reset-form>Submit another application</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import '../scripts/forms';
+
+  // "Apply for this role" pre-selects the role in the form
+  document.querySelectorAll<HTMLAnchorElement>('[data-apply]').forEach((a) =>
+    a.addEventListener('click', () => {
+      const select = document.querySelector<HTMLSelectElement>('select[name="role"]');
+      if (select) {
+        select.value = a.dataset.apply!;
+        select.dispatchEvent(new Event('change'));
+      }
+    }),
+  );
+</script>
+
+<style>
+  .count {
+    height: 1.25rem;
+    margin-left: 0.15rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
+
+  .benefits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-10) var(--space-8);
+  }
+
+  .benefit {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+
+  .benefit h3 {
+    margin-top: var(--space-2);
+    font-size: var(--fs-lg);
+  }
+
+  .benefit p {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    line-height: var(--lh-relaxed);
+  }
+
+  .roles__head {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+  }
+
+  .roles__head h2,
+  .apply__head h2 {
+    font-size: var(--fs-3xl);
+    letter-spacing: var(--tracking-tighter);
+  }
+
+  .roles {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .role {
+    overflow: hidden;
+  }
+
+  .role[open] {
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
+  }
+
+  .role__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .role__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .role__summary:hover .role__title {
+    color: var(--accent-hover);
+  }
+
+  .role__main {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .role__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-tight);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .role__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    font-size: var(--fs-sm);
+    color: var(--text-subtle);
+  }
+
+  .role__meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .role__meta :global(.icon) {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .role__toggle {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    transition: transform var(--dur-base) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+  }
+
+  .role[open] .role__toggle {
+    transform: rotate(180deg);
+    background: var(--bg-muted);
+  }
+
+  .role__body {
+    display: grid;
+    gap: var(--space-6);
+    justify-items: start;
+    padding: 0 var(--space-6) var(--space-6);
+    animation: open 400ms var(--ease-out);
+  }
+
+  .role__lede {
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+    color: var(--stone-700);
+    width: 100%;
+  }
+
+  .role__cols {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .role__cols h3 {
+    margin-bottom: var(--space-3);
+    font-size: var(--fs-base);
+  }
+
+  .role__cols ul {
+    display: grid;
+    gap: var(--space-2);
+    padding-left: 1.1rem;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .role__cols li::marker {
+    color: var(--accent);
+  }
+
+  @keyframes open {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
+  .no-roles {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    color: var(--text-muted);
+  }
+
+  .apply {
+    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+    box-shadow: var(--shadow-md);
+  }
+
+  .apply__head {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+  }
+
+  .apply__head p:last-child {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  @media (min-width: 40rem) {
+    .role__cols {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

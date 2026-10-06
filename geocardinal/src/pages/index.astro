@@ -1,0 +1,915 @@
+---
+import Base from '../layouts/Base.astro';
+import Topo from '../components/Topo.astro';
+import Icon from '../components/Icon.astro';
+import BoreholeLog from '../components/BoreholeLog.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import InsightCard from '../components/InsightCard.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site, sectors, commodities, offices, values } from '../data/site';
+import { services, stages } from '../data/services';
+import { insights } from '../data/insights';
+
+const years = new Date().getFullYear() - site.founded;
+const stats = [
+  { value: `${years}+`, label: 'Years in practice', note: `Established ${site.founded}` },
+  { value: String(offices.length), label: 'Offices', note: 'Nigeria, South Africa, Canada' },
+  { value: String(sectors.length), label: 'Industry sectors', note: 'Mining to civil infrastructure' },
+  { value: `${commodities.length}+`, label: 'Commodities', note: 'From gold to rare earths' },
+];
+---
+
+<Base headerTone="dark">
+  <!-- Hero -->
+  <section class="hero on-dark" aria-labelledby="hero-title">
+    <div class="hero__bg">
+      <Topo />
+    </div>
+    <div class="container hero__grid">
+      <div class="hero__copy">
+        <p class="eyebrow hero__eyebrow">Geotechnical · Mining · Energy — since {site.founded}</p>
+        <h1 id="hero-title" class="hero__title">
+          Engineering certainty <span>beneath the surface.</span>
+        </h1>
+        <p class="hero__lede">
+          Geocardinal solves the most pressing geotechnical and mining challenges for operators and investors across Oil &amp; Gas, Solid Minerals, Civil Engineering and Mining — from the first sample to steady-state production.
+        </p>
+        <div class="hero__actions">
+          <a href="/contact" class="btn btn--primary btn--lg">
+            Discuss your project <Icon name="arrow-right" class="icon--arrow" />
+          </a>
+          <a href="/services" class="btn btn--ghost-dark btn--lg">Explore services</a>
+        </div>
+        <ul role="list" class="hero__offices" aria-label="Office locations">
+          {offices.map((o) => <li>{o.city}</li>)}
+        </ul>
+      </div>
+      <div class="hero__visual">
+        <BoreholeLog />
+      </div>
+    </div>
+  </section>
+
+  <!-- Sectors -->
+  <section class="section sectors" aria-labelledby="sectors-title">
+    <div class="container">
+      <SectionHeader
+        id="sectors-title"
+        eyebrow="Sectors"
+        title="One ground model. Four industries."
+        lede="The same discipline — understand the ground, quantify the risk, design for it — applied wherever the earth decides whether a project succeeds."
+        align="split"
+      />
+      <ul role="list" class="sectors__grid">
+        {
+          sectors.map((s, i) => (
+            <li class="sector" data-reveal style={`--reveal-i:${i}`}>
+              <span class="sector__num mono">0{i + 1}</span>
+              <span class="icon-tile">
+                <Icon name={s.icon} />
+              </span>
+              <h3 class="sector__name">{s.name}</h3>
+              <p class="sector__text">{s.summary}</p>
+              <a class="sector__link" href={`/services?sector=${s.id}`}>
+                <span class="visually-hidden">View {s.name} services</span>
+                <Icon name="arrow-up-right" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Capabilities index -->
+  <section class="section section--subtle" aria-labelledby="cap-title">
+    <div class="container">
+      <SectionHeader id="cap-title" eyebrow="Capabilities" title="Ten disciplines, one accountable team." align="split">
+        <p class="lede">
+          Specialists in geology, geotechnics, mining, metallurgy and compliance working from a single data set — so nothing is lost between disciplines.
+        </p>
+        <a href="/services" class="link-arrow">Browse all services <Icon name="arrow-right" /></a>
+      </SectionHeader>
+
+      <ol role="list" class="caps">
+        {
+          services.map((s, i) => (
+            <li class="cap" data-reveal>
+              <a href={`/services/${s.slug}`} class="cap__link">
+                <span class="cap__num mono">{String(i + 1).padStart(2, '0')}</span>
+                <span class="cap__title">{s.title}</span>
+                <span class="cap__text">{s.short}</span>
+                <span class="cap__stage badge">{stages.find((x) => x.id === s.stage)?.label}</span>
+                <span class="cap__arrow" aria-hidden="true">
+                  <Icon name="arrow-right" />
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Lifecycle -->
+  <section class="section section--dark lifecycle on-dark" aria-labelledby="life-title">
+    <div class="lifecycle__topo">
+      <Topo seed={41} animate={false} summits={[{ x: 200, y: 700, rings: 22, spacing: 26, start: 12 }]} />
+    </div>
+    <div class="container lifecycle__inner">
+      <SectionHeader
+        id="life-title"
+        eyebrow="Project lifecycle"
+        title="From first sample to steady-state production."
+        lede="Engage us at a single stage or across the whole journey. Each step hands clean, validated data to the next."
+        align="split"
+      />
+      <ol role="list" class="stages">
+        {
+          stages.map((st, i) => {
+            const items = services.filter((s) => s.stage === st.id);
+            return (
+              <li class="stage" data-reveal style={`--reveal-i:${i}`}>
+                <div class="stage__marker">
+                  <span class="stage__dot" />
+                  <span class="stage__num mono">{String(i + 1).padStart(2, '0')}</span>
+                </div>
+                <h3 class="stage__title">{st.label}</h3>
+                <p class="stage__summary">{st.summary}</p>
+                <ul role="list" class="stage__items">
+                  {items.map((s) => (
+                    <li>
+                      <a href={`/services/${s.slug}`}>{s.title.replace(', Planning & Engineering', '')}</a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            );
+          })
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Proof & principles -->
+  <section class="section" aria-labelledby="why-title">
+    <div class="container">
+      <SectionHeader
+        id="why-title"
+        eyebrow="Why Geocardinal"
+        title="Regional knowledge. International standards."
+        lede="Our professionals combine a firm grasp of local terrain, climate and on-the-ground realities across Nigeria and Africa with the systems and rigour expected by international investors."
+        align="split"
+      />
+
+      <dl class="stats">
+        {
+          stats.map((s, i) => (
+            <div class="stat" data-reveal style={`--reveal-i:${i}`}>
+              <dt class="stat__label">{s.label}</dt>
+              <dd class="stat__value">{s.value}</dd>
+              <dd class="stat__note">{s.note}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <div class="why">
+        <ul role="list" class="values">
+          {
+            values.map((v, i) => (
+              <li class="value" data-reveal style={`--reveal-i:${i}`}>
+                <Icon name={v.icon} />
+                <div>
+                  <h3>{v.title}</h3>
+                  <p>{v.body}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+        <aside class="commod card" data-reveal aria-labelledby="commod-title">
+          <p class="eyebrow">Commodity experience</p>
+          <h3 id="commod-title" class="commod__title">Explored, tested and developed.</h3>
+          <ul role="list" class="commod__list">
+            {commodities.map((c) => <li class="badge badge--earth">{c}</li>)}
+          </ul>
+          <p class="commod__note">
+            Including strategic exploration for uranium and rare earth elements using geophysical surveys, geochemical analysis and precision drilling.
+          </p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Presence -->
+  <section class="section section--subtle" aria-labelledby="presence-title">
+    <div class="container">
+      <SectionHeader
+        id="presence-title"
+        eyebrow="Presence"
+        title="Close to the ground we work on."
+        lede="Headquartered in Abuja with branch offices across Nigeria and international offices in South Africa and Canada."
+        align="split"
+      >
+        <a href="/contact#offices" class="link-arrow">Office details <Icon name="arrow-right" /></a>
+      </SectionHeader>
+      <ul role="list" class="offices">
+        {
+          offices.map((o, i) => (
+            <li class:list={['office', { 'office--hq': 'primary' in o }]} data-reveal style={`--reveal-i:${i % 3}`}>
+              <div class="office__top">
+                <span class:list={['badge', { 'badge--accent': 'primary' in o }]}>{o.role}</span>
+                <Icon name="map-pin" />
+              </div>
+              <p class="office__city">{o.city}</p>
+              <p class="office__country">{o.country}</p>
+              <p class="office__coords mono">{o.coords}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Insights -->
+  <section class="section" aria-labelledby="ins-title">
+    <div class="container">
+      <SectionHeader id="ins-title" eyebrow="Insights" title="Thinking from the field." align="split">
+        <p class="lede">Perspectives on de-risking Nigerian mining, operational strategy and responsible development.</p>
+        <a href="/insights" class="link-arrow">All insights <Icon name="arrow-right" /></a>
+      </SectionHeader>
+      <div class="insights">
+        {insights.map((ins, i) => <InsightCard insight={ins} index={i} />)}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  /* ---------------- Hero ---------------- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-top: calc(var(--header-h) + clamp(2.5rem, 1rem + 6vw, 7rem));
+    padding-bottom: clamp(4rem, 2rem + 6vw, 8rem);
+    background:
+      radial-gradient(80% 60% at 85% 10%, rgba(199, 54, 43, 0.16), transparent 60%),
+      radial-gradient(60% 50% at 0% 100%, rgba(184, 115, 58, 0.1), transparent 60%),
+      var(--ink-900);
+    color: var(--text-on-dark);
+  }
+
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    color: rgba(236, 232, 222, 0.13);
+    mask-image: radial-gradient(120% 100% at 70% 30%, #000 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(120% 100% at 70% 30%, #000 30%, transparent 80%);
+  }
+
+  .hero__grid {
+    position: relative;
+    display: grid;
+    gap: clamp(3rem, 2rem + 4vw, 5rem);
+    align-items: center;
+  }
+
+  .hero__eyebrow {
+    animation: rise 800ms var(--ease-out) both;
+  }
+
+  .hero__title {
+    margin-top: var(--space-6);
+    font-size: var(--fs-5xl);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-weight: var(--fw-semibold);
+    animation: rise 900ms 80ms var(--ease-out) both;
+  }
+
+  .hero__title span {
+    display: block;
+    color: var(--text-on-dark-muted);
+  }
+
+  .hero__lede {
+    margin-top: var(--space-6);
+    max-width: 34rem;
+    font-size: var(--fs-lg);
+    line-height: var(--lh-relaxed);
+    color: var(--text-on-dark-muted);
+    animation: rise 900ms 160ms var(--ease-out) both;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-10);
+    animation: rise 900ms 240ms var(--ease-out) both;
+  }
+
+  .hero__offices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    margin-top: var(--space-12);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-dark);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    color: var(--text-on-dark-muted);
+    animation: rise 900ms 320ms var(--ease-out) both;
+  }
+
+  .hero__offices li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .hero__offices li::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--cardinal-400);
+  }
+
+  .hero__visual {
+    animation: rise 1000ms 200ms var(--ease-out) both;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .hero__grid {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+    .hero {
+      min-height: min(100vh, 58rem);
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  /* ---------------- Sectors ---------------- */
+  .sectors__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    border-top: 1px solid var(--border);
+  }
+
+  .sector {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    padding: var(--space-8) var(--space-6) var(--space-8) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sector__num {
+    position: absolute;
+    top: var(--space-8);
+    right: var(--space-6);
+    font-size: var(--fs-xs);
+    color: var(--stone-400);
+  }
+
+  .sector__name {
+    font-size: var(--fs-xl);
+    margin-top: var(--space-2);
+  }
+
+  .sector__text {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+    max-width: 30ch;
+  }
+
+  .sector__link {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-top: var(--space-2);
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    color: var(--stone-600);
+    transition: all var(--dur-base) var(--ease-out);
+  }
+
+  .sector__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .sector__link .icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .sector:hover .sector__link {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    transform: rotate(45deg);
+  }
+
+  .sector:hover .icon-tile {
+    background: var(--cardinal-50);
+    border-color: var(--cardinal-100);
+  }
+
+  @media (max-width: 39.99rem) {
+    .sector {
+      grid-template-columns: auto 1fr;
+      gap: 0.25rem var(--space-4);
+      padding: var(--space-6) 3rem var(--space-6) 0;
+    }
+    .sector .icon-tile {
+      grid-row: 1 / 3;
+    }
+    .sector__num {
+      display: none;
+    }
+    .sector__name {
+      margin-top: 0;
+      font-size: var(--fs-lg);
+    }
+    .sector__text {
+      grid-column: 2;
+    }
+    .sector__link {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      margin: -1.125rem 0 0;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sector {
+      padding-left: var(--space-6);
+      border-left: 1px solid var(--border);
+    }
+    .sectors__grid {
+      border-right: 1px solid var(--border);
+    }
+  }
+
+  /* ---------------- Capabilities ---------------- */
+  .caps {
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .cap {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cap__link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.5rem 1fr auto;
+    gap: 0.25rem var(--space-4);
+    align-items: baseline;
+    padding: var(--space-6) 0;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .cap__link::before {
+    content: '';
+    position: absolute;
+    inset: 0 calc(var(--space-4) * -1);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    transform: scaleY(0.92);
+    transition: all var(--dur-base) var(--ease-out);
+    z-index: 0;
+  }
+
+  .cap__link > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .cap__link:hover::before,
+  .cap__link:focus-visible::before {
+    opacity: 1;
+    transform: none;
+  }
+
+  .cap__num {
+    font-size: var(--fs-xs);
+    color: var(--stone-400);
+    grid-row: 1 / 3;
+  }
+
+  .cap__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.25;
+  }
+
+  .cap__text {
+    grid-column: 2;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    max-width: 52ch;
+  }
+
+  .cap__stage {
+    display: none;
+  }
+
+  .cap__arrow {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    align-self: center;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    color: var(--stone-500);
+    transition: all var(--dur-base) var(--ease-out);
+  }
+
+  .cap__arrow .icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .cap__link:hover .cap__arrow {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .cap__link:hover .cap__num {
+    color: var(--accent);
+  }
+
+  @media (min-width: 60rem) {
+    .cap__link {
+      grid-template-columns: 3.5rem minmax(0, 1.1fr) minmax(0, 1.3fr) 7rem 2.5rem;
+      align-items: center;
+      padding: var(--space-5) 0;
+    }
+    .cap__num,
+    .cap__text,
+    .cap__arrow {
+      grid-row: auto;
+      grid-column: auto;
+    }
+    .cap__stage {
+      display: inline-flex;
+      justify-self: start;
+    }
+  }
+
+  /* ---------------- Lifecycle ---------------- */
+  .lifecycle {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lifecycle__topo {
+    position: absolute;
+    inset: 0;
+    color: rgba(255, 255, 255, 0.06);
+  }
+
+  .lifecycle__inner {
+    position: relative;
+  }
+
+  .stages {
+    display: grid;
+    gap: var(--space-2);
+    counter-reset: stage;
+  }
+
+  .stage {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    padding: 0 0 var(--space-8) var(--space-8);
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .stage__marker {
+    position: absolute;
+    left: -5px;
+    top: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .stage__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ink-900);
+    border: 1.5px solid var(--cardinal-400);
+    transition: background-color var(--dur-base) var(--ease-out);
+  }
+
+  .stage:hover .stage__dot {
+    background: var(--cardinal-400);
+  }
+
+  .stage__num {
+    display: none;
+    font-size: var(--fs-xs);
+    color: var(--text-on-dark-muted);
+  }
+
+  .stage__title {
+    font-size: var(--fs-xl);
+    color: #fff;
+  }
+
+  .stage__summary {
+    font-size: var(--fs-sm);
+    color: var(--text-on-dark-muted);
+  }
+
+  .stage__items {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: var(--space-3);
+  }
+
+  .stage__items a {
+    font-size: var(--fs-sm);
+    color: var(--text-on-dark);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  }
+
+  .stage__items a:hover {
+    color: #fff;
+    border-color: var(--cardinal-400);
+  }
+
+  @media (min-width: 64rem) {
+    .stages {
+      grid-template-columns: repeat(6, 1fr);
+      gap: var(--space-6);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .stage {
+      padding: var(--space-10) 0 0;
+      border-left: 0;
+    }
+    .stage__marker {
+      top: -5px;
+      left: 0;
+    }
+    .stage__num {
+      display: inline;
+    }
+  }
+
+  /* ---------------- Why ---------------- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-top: 1px solid var(--border-strong);
+    margin-bottom: clamp(3rem, 2rem + 3vw, 5rem);
+  }
+
+  .stat {
+    display: grid;
+    padding: var(--space-6) var(--space-4) var(--space-6) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat__label {
+    order: 2;
+    margin-top: var(--space-2);
+    font-weight: var(--fw-medium);
+    font-size: var(--fs-sm);
+  }
+
+  .stat__value {
+    order: 1;
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat__note {
+    order: 3;
+    font-size: var(--fs-xs);
+    color: var(--text-subtle);
+  }
+
+  @media (min-width: 60rem) {
+    .stats {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .stat + .stat {
+      padding-left: var(--space-6);
+      border-left: 1px solid var(--border);
+    }
+  }
+
+  .why {
+    display: grid;
+    gap: var(--space-10);
+  }
+
+  .values {
+    display: grid;
+    gap: var(--space-8) var(--space-10);
+  }
+
+  .value {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+  }
+
+  .value > :global(.icon) {
+    margin-top: 0.15rem;
+    color: var(--accent);
+  }
+
+  .value h3 {
+    font-size: var(--fs-lg);
+  }
+
+  .value p {
+    margin-top: var(--space-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+    color: var(--text-muted);
+  }
+
+  .commod {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    padding: var(--space-8);
+    background: linear-gradient(180deg, var(--surface), var(--stone-50));
+  }
+
+  .commod__title {
+    font-size: var(--fs-2xl);
+  }
+
+  .commod__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .commod__note {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    line-height: var(--lh-relaxed);
+  }
+
+  @media (min-width: 48rem) {
+    .values {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .why {
+      grid-template-columns: 1.6fr 1fr;
+      gap: var(--space-16);
+    }
+  }
+
+  /* ---------------- Offices ---------------- */
+  .offices {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-4);
+  }
+
+  .office {
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  }
+
+  .office:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .office--hq {
+    background: var(--ink-900);
+    border-color: var(--ink-900);
+    color: var(--text-on-dark);
+  }
+
+  .office--hq .office__country,
+  .office--hq .office__coords {
+    color: var(--text-on-dark-muted);
+  }
+
+  .office--hq .badge--accent {
+    background: rgba(199, 54, 43, 0.22);
+    color: var(--cardinal-200);
+  }
+
+  .office__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-8);
+  }
+
+  .office__top :global(.icon) {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--accent);
+  }
+
+  .office--hq .office__top :global(.icon) {
+    color: var(--cardinal-400);
+  }
+
+  .office__city {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.1;
+  }
+
+  .office__country {
+    margin-top: 0.2rem;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .office__coords {
+    margin-top: var(--space-4);
+    font-size: var(--fs-xs);
+    color: var(--text-subtle);
+  }
+
+  @media (max-width: 39.99rem) {
+    .offices {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+    .office {
+      padding: var(--space-4);
+    }
+    .office--hq {
+      grid-column: 1 / -1;
+    }
+    .office__top {
+      margin-bottom: var(--space-5);
+    }
+    .office:not(.office--hq) .badge {
+      font-size: 0.5625rem;
+      padding: 0 0.4rem;
+    }
+    .office__city {
+      font-size: var(--fs-xl);
+    }
+    .office:not(.office--hq) .office__coords {
+      display: none;
+    }
+  }
+
+  /* ---------------- Insights ---------------- */
+  .insights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    gap: var(--space-5);
+  }
+</style>

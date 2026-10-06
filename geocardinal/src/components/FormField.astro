@@ -1,0 +1,115 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  name: string;
+  label: string;
+  type?: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'url';
+  required?: boolean;
+  placeholder?: string;
+  hint?: string;
+  autocomplete?: string;
+  options?: { value: string; label: string; selected?: boolean }[];
+  minlength?: number;
+  maxlength?: number;
+  rows?: number;
+  value?: string;
+  class?: string;
+}
+
+const {
+  name,
+  label,
+  type = 'text',
+  required = false,
+  placeholder,
+  hint,
+  autocomplete,
+  options = [],
+  minlength,
+  maxlength,
+  rows = 5,
+  value,
+  class: className,
+} = Astro.props;
+
+const id = `f-${name}`;
+const describedBy = [hint ? `${id}-hint` : '', `${id}-error`].filter(Boolean).join(' ');
+const dataLabel = label.toLowerCase().replace(/^(your )?/, 'your ');
+---
+
+<div class:list={['field', className]} data-invalid="false">
+  <label for={id} class="field__label">
+    {label}
+    {!required && <span class="optional"> (optional)</span>}
+  </label>
+  {
+    type === 'textarea' ? (
+      <textarea
+        id={id}
+        name={name}
+        class="textarea"
+        required={required}
+        placeholder={placeholder}
+        minlength={minlength}
+        maxlength={maxlength}
+        rows={rows}
+        aria-describedby={describedBy}
+        data-label={dataLabel}
+      >{value}</textarea>
+    ) : type === 'select' ? (
+      <select id={id} name={name} class="select" required={required} aria-describedby={describedBy} data-label={dataLabel}>
+        <option value="" disabled selected={!options.some((o) => o.selected)}>
+          {placeholder ?? 'Select an option'}
+        </option>
+        {options.map((o) => (
+          <option value={o.value} selected={o.selected}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    ) : (
+      <input
+        id={id}
+        name={name}
+        type={type}
+        class="input"
+        required={required}
+        placeholder={placeholder}
+        autocomplete={autocomplete}
+        minlength={minlength}
+        maxlength={maxlength}
+        value={value}
+        aria-describedby={describedBy}
+        data-label={dataLabel}
+      />
+    )
+  }
+  {
+    (hint || maxlength) && (
+      <div class="field__meta">
+        {hint && <p class="field__hint" id={`${id}-hint`}>{hint}</p>}
+        {type === 'textarea' && maxlength && <p class="field__hint field__counter mono" data-counter={name} aria-hidden="true" />}
+      </div>
+    )
+  }
+  <p class="field__error" id={`${id}-error`} data-error aria-live="polite">
+    <Icon name="alert" /><span></span>
+  </p>
+</div>
+
+<style>
+  .field__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+  .field__counter {
+    margin-left: auto;
+    font-size: 0.6875rem;
+  }
+  .field__error :global(.icon) {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+</style>

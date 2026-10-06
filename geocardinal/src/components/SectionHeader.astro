@@ -1,0 +1,68 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+  align?: 'start' | 'center' | 'split';
+  as?: 'h1' | 'h2';
+  id?: string;
+}
+const { eyebrow, title, lede, align = 'start', as: Tag = 'h2', id } = Astro.props;
+---
+
+<div class:list={['sh', `sh--${align}`]} data-reveal>
+  <div class="sh__main">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <Tag class="sh__title" id={id}>{title}</Tag>
+  </div>
+  {(lede || Astro.slots.has('default')) && (
+    <div class="sh__aside">
+      {lede && <p class="lede">{lede}</p>}
+      <slot />
+    </div>
+  )}
+</div>
+
+<style>
+  .sh {
+    display: grid;
+    gap: var(--space-5);
+    margin-bottom: clamp(2.5rem, 2rem + 2vw, 4rem);
+  }
+  .sh__main {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .sh__title {
+    font-size: var(--fs-4xl);
+    line-height: 1.08;
+    letter-spacing: var(--tracking-tighter);
+    max-width: 18ch;
+  }
+  .sh--center {
+    text-align: center;
+    justify-items: center;
+  }
+  .sh--center .sh__main {
+    justify-items: center;
+  }
+  .sh--center .lede {
+    margin-inline: auto;
+  }
+  .sh__aside {
+    display: grid;
+    gap: var(--space-5);
+    align-content: end;
+    justify-items: start;
+  }
+  :global(.section--dark) .sh .lede {
+    color: var(--text-on-dark-muted);
+  }
+  @media (min-width: 60rem) {
+    .sh--split {
+      grid-template-columns: 1.15fr 1fr;
+      gap: var(--space-16);
+      align-items: end;
+    }
+  }
+</style>

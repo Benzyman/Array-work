@@ -1,0 +1,254 @@
+---
+/** Illustrative borehole log – the hero's signature visual. */
+const layers = [
+  { from: 0, to: 2, name: 'Lateritic soil', note: 'Reddish-brown, ferruginous', rqd: null, pattern: 'dots', color: 'var(--laterite-500)' },
+  { from: 2, to: 9.5, name: 'Saprolite', note: 'Completely weathered, relict fabric', rqd: null, pattern: 'dash', color: 'var(--laterite-300)' },
+  { from: 9.5, to: 17, name: 'Weathered granite', note: 'Moderately weathered, jointed', rqd: 46, pattern: 'cross', color: '#8d8a80' },
+  { from: 17, to: 30, name: 'Fresh gneiss', note: 'Strong, widely spaced joints', rqd: 89, pattern: 'band', color: '#5d6878' },
+];
+const total = layers[layers.length - 1].to;
+---
+
+<figure class="bh" aria-label="Illustrative borehole log showing four strata from lateritic soil to fresh gneiss">
+  <header class="bh__head">
+    <div>
+      <p class="bh__id mono">BH-07</p>
+      <p class="bh__label">Geotechnical borehole log</p>
+    </div>
+    <span class="badge badge--dark"><span class="badge__dot" style="color:#5fd08a"></span> Logged</span>
+  </header>
+
+  <div class="bh__table" role="table" aria-label="Strata">
+    <div class="bh__row bh__row--head" role="row">
+      <span role="columnheader">Depth</span>
+      <span role="columnheader"><span class="visually-hidden">Column</span></span>
+      <span role="columnheader">Description</span>
+      <span role="columnheader" class="bh__num">RQD</span>
+    </div>
+    {
+      layers.map((l, i) => (
+        <div class="bh__row" role="row" style={`--h:${(l.to - l.from) / total}; --i:${i}`}>
+          <span role="cell" class="bh__depth mono">
+            {l.from.toFixed(1)}
+            <small>m</small>
+          </span>
+          <span role="cell" class={`bh__core bh__core--${l.pattern}`} style={`--c:${l.color}`} />
+          <span role="cell" class="bh__desc">
+            <strong>{l.name}</strong>
+            <span>{l.note}</span>
+          </span>
+          <span role="cell" class="bh__num mono">
+            {l.rqd === null ? '—' : (
+              <>
+                {l.rqd}
+                <small>%</small>
+              </>
+            )}
+          </span>
+        </div>
+      ))
+    }
+  </div>
+
+  <footer class="bh__foot">
+    <div>
+      <p class="bh__k">Rock mass</p>
+      <p class="bh__v">Good · RMR 68</p>
+    </div>
+    <div>
+      <p class="bh__k">Inter-ramp angle</p>
+      <p class="bh__v">52°</p>
+    </div>
+    <div>
+      <p class="bh__k">Water strike</p>
+      <p class="bh__v">11.2 m</p>
+    </div>
+  </footer>
+  <figcaption class="bh__caption">Illustrative data</figcaption>
+</figure>
+
+<style>
+  .bh {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    border-radius: var(--radius-xl);
+    background: linear-gradient(180deg, rgba(31, 42, 61, 0.78), rgba(13, 20, 32, 0.86));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 40px 80px -30px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--text-on-dark);
+    font-size: var(--fs-sm);
+  }
+
+  .bh__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .bh__id {
+    font-size: var(--fs-xs);
+    color: var(--cardinal-200);
+    letter-spacing: 0.08em;
+  }
+
+  .bh__label {
+    margin-top: 0.15rem;
+    font-family: var(--font-display);
+    font-weight: var(--fw-semibold);
+    font-size: var(--fs-md);
+  }
+
+  .bh__table {
+    display: grid;
+    grid-template-rows: auto repeat(4, auto);
+  }
+
+  .bh__row {
+    display: grid;
+    grid-template-columns: 3.25rem 2.25rem 1fr 2.75rem;
+    gap: var(--space-4);
+    align-items: stretch;
+    min-height: calc(var(--h, 0) * 17rem + 2.6rem);
+  }
+
+  .bh__row--head {
+    min-height: 0;
+    align-items: end;
+    padding-bottom: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-on-dark-muted);
+  }
+
+  .bh__row:not(.bh__row--head) + .bh__row {
+    border-top: 1px dashed rgba(255, 255, 255, 0.09);
+  }
+
+  .bh__depth,
+  .bh__num {
+    padding-top: 0.55rem;
+    font-size: var(--fs-xs);
+    color: var(--text-on-dark-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bh__row--head .bh__num {
+    padding-top: 0;
+    color: inherit;
+  }
+
+  .bh__num {
+    text-align: right;
+    color: var(--text-on-dark);
+  }
+
+  small {
+    margin-left: 1px;
+    opacity: 0.6;
+    font-size: 0.85em;
+  }
+
+  .bh__core {
+    position: relative;
+    background-color: var(--c);
+    transform-origin: top;
+    animation: core-in 900ms var(--ease-out) both;
+    animation-delay: calc(400ms + var(--i) * 160ms);
+  }
+
+  .bh__row:nth-child(2) .bh__core {
+    border-radius: 4px 4px 0 0;
+  }
+  .bh__row:last-child .bh__core {
+    border-radius: 0 0 4px 4px;
+  }
+
+  .bh__core--dots {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.28) 1px, transparent 1.4px);
+    background-size: 6px 6px;
+  }
+  .bh__core--dash {
+    background-image: repeating-linear-gradient(0deg, transparent 0 7px, rgba(0, 0, 0, 0.18) 7px 8px),
+      radial-gradient(rgba(0, 0, 0, 0.16) 1px, transparent 1.4px);
+    background-size: auto, 8px 8px;
+  }
+  .bh__core--cross {
+    background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255, 255, 255, 0.14) 6px 7px),
+      repeating-linear-gradient(-45deg, transparent 0 6px, rgba(0, 0, 0, 0.16) 6px 7px);
+  }
+  .bh__core--band {
+    background-image: repeating-linear-gradient(-12deg, transparent 0 5px, rgba(255, 255, 255, 0.1) 5px 7px, transparent 7px 12px);
+  }
+
+  .bh__desc {
+    display: grid;
+    align-content: start;
+    gap: 0.1rem;
+    padding-block: 0.5rem;
+    animation: desc-in 700ms var(--ease-out) both;
+    animation-delay: calc(600ms + var(--i) * 160ms);
+  }
+
+  .bh__desc strong {
+    font-weight: var(--fw-medium);
+  }
+
+  .bh__desc span {
+    font-size: var(--fs-xs);
+    color: var(--text-on-dark-muted);
+  }
+
+  .bh__foot {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+  }
+
+  .bh__k {
+    font-size: 0.625rem;
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-on-dark-muted);
+  }
+
+  .bh__v {
+    margin-top: 0.2rem;
+    font-weight: var(--fw-medium);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bh__caption {
+    position: absolute;
+    right: var(--space-6);
+    bottom: calc(var(--space-2) * -1 - 1.2rem);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: var(--ink-500);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  @keyframes core-in {
+    from {
+      transform: scaleY(0);
+    }
+  }
+
+  @keyframes desc-in {
+    from {
+      opacity: 0;
+      transform: translateX(-6px);
+    }
+  }
+</style>

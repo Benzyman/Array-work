@@ -1,0 +1,352 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { leadership, disciplines } from '../data/team';
+---
+
+<Base title="Leadership & Team" description="Meet the leadership and multidisciplinary team of licensed engineers and geologists at Geocardinal Engineering Services.">
+  <PageHero
+    eyebrow="Team"
+    title="Licensed engineers and geologists, working as one team."
+    lede="Senior leadership with decades of experience, supported by specialists across every discipline a resource project needs."
+    crumbs={[{ label: 'Team' }]}
+    seed={17}
+  />
+
+  <section class="section" aria-labelledby="leaders-title">
+    <div class="container">
+      <SectionHeader id="leaders-title" eyebrow="Leadership" title="The people accountable for our work." align="split" lede="Experienced leadership that stays close to the technical work — select a profile to read more." />
+      <ul role="list" class="leaders">
+        {
+          leadership.map((p, i) => (
+            <li data-reveal style={`--reveal-i:${i}`}>
+              <button class="leader card card--interactive" data-open-dialog={`bio-${p.id}`} aria-haspopup="dialog">
+                <span class="leader__portrait" aria-hidden="true">
+                  <span class="leader__initials">{p.initials}</span>
+                </span>
+                <span class="leader__body">
+                  <span class="leader__role">{p.role}</span>
+                  <span class="leader__name">{p.name}</span>
+                  <span class="leader__summary">{p.summary}</span>
+                  <span class="link-arrow">Read profile <Icon name="arrow-right" /></span>
+                </span>
+              </button>
+
+              <dialog class="modal" id={`bio-${p.id}`} aria-labelledby={`bio-${p.id}-title`}>
+                <div class="modal__panel">
+                  <header class="modal__head">
+                    <span class="modal__avatar" aria-hidden="true">{p.initials}</span>
+                    <div>
+                      <p class="modal__role">{p.role}</p>
+                      <h2 class="modal__title" id={`bio-${p.id}-title`}>{p.name}</h2>
+                    </div>
+                    <button class="modal__close" data-close-dialog aria-label="Close profile">
+                      <Icon name="close" />
+                    </button>
+                  </header>
+                  <div class="modal__body prose">
+                    {p.bio.map((b) => <p>{b}</p>)}
+                  </div>
+                  <div class="modal__focus">
+                    <p class="eyebrow">Focus areas</p>
+                    <ul role="list">
+                      {p.focus.map((f) => <li class="badge">{f}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              </dialog>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--subtle" aria-labelledby="disc-title">
+    <div class="container">
+      <SectionHeader id="disc-title" eyebrow="Disciplines" title="Every specialism a resource project needs." align="split" lede="Our licensed engineers and geologists bring experience across both the oil & gas and solid minerals sectors." />
+      <ul role="list" class="disc">
+        {
+          disciplines.map((d, i) => (
+            <li class="disc__item" data-reveal style={`--reveal-i:${i % 3}`}>
+              <span class="icon-tile"><Icon name={d.icon} /></span>
+              <h3>{d.title}</h3>
+              <p>{d.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title="Want to join us?" body="We’re always looking for talented engineers and geoscientists who care about doing things properly." href="/careers" label="View careers" />
+</Base>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-open-dialog]').forEach((btn) => {
+    const dialog = document.getElementById(btn.dataset.openDialog!) as HTMLDialogElement | null;
+    if (!dialog) return;
+    const close = () => {
+      dialog.setAttribute('data-closing', '');
+      setTimeout(() => {
+        dialog.removeAttribute('data-closing');
+        dialog.close();
+      }, 180);
+    };
+    btn.addEventListener('click', () => dialog.showModal());
+    dialog.querySelector('[data-close-dialog]')?.addEventListener('click', close);
+    // Click on backdrop closes
+    dialog.addEventListener('click', (e) => e.target === dialog && close());
+    dialog.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      close();
+    });
+    dialog.addEventListener('close', () => btn.focus());
+  });
+</script>
+
+<style>
+  .leaders {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .leader {
+    display: grid;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
+
+  .leader__portrait {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    background:
+      radial-gradient(100% 100% at 100% 0%, rgba(199, 54, 43, 0.35), transparent 60%),
+      repeating-radial-gradient(circle at 80% 20%, transparent 0 18px, rgba(255, 255, 255, 0.05) 18px 19px),
+      var(--ink-900);
+  }
+
+  .leader__initials {
+    display: grid;
+    place-items: center;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.03em;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  .leader:hover .leader__initials {
+    transform: scale(1.05);
+  }
+
+  .leader__body {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-6);
+  }
+
+  .leader__role {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-hover);
+  }
+
+  .leader__name {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.15;
+  }
+
+  .leader__summary {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    margin-bottom: var(--space-3);
+  }
+
+  .leader:hover .link-arrow {
+    color: var(--accent-hover);
+  }
+
+  .leader:hover .link-arrow :global(.icon) {
+    transform: translateX(3px);
+  }
+
+  /* Modal */
+  .modal {
+    width: min(40rem, calc(100vw - 2rem));
+    max-height: calc(100vh - 2rem);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 40px 100px -20px rgba(8, 12, 20, 0.5);
+  }
+
+  .modal[open] {
+    animation: modal-in 320ms var(--ease-out);
+  }
+
+  .modal[data-closing] {
+    animation: modal-out 180ms var(--ease-out) forwards;
+  }
+
+  .modal::backdrop {
+    background: rgba(8, 12, 20, 0.55);
+    backdrop-filter: blur(4px);
+    animation: fade 320ms var(--ease-out);
+  }
+
+  .modal[data-closing]::backdrop {
+    animation: fade 180ms var(--ease-out) reverse forwards;
+  }
+
+  .modal__panel {
+    display: grid;
+    gap: var(--space-6);
+    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  }
+
+  .modal__head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-4);
+    align-items: center;
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal__avatar {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cardinal-500), var(--laterite-500));
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: var(--fw-semibold);
+  }
+
+  .modal__role {
+    font-size: var(--fs-xs);
+    color: var(--accent-hover);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .modal__title {
+    font-size: var(--fs-2xl);
+  }
+
+  .modal__close {
+    display: grid;
+    place-items: center;
+    align-self: start;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    cursor: pointer;
+    transition: background-color var(--dur-fast) var(--ease-out);
+  }
+
+  .modal__close:hover {
+    background: var(--bg-muted);
+  }
+
+  .modal__focus {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .modal__focus ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+    }
+  }
+
+  @keyframes modal-out {
+    to {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* Disciplines */
+  .disc {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .disc__item {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    padding: var(--space-8) var(--space-6);
+    background: var(--surface);
+    transition: background-color var(--dur-base) var(--ease-out);
+  }
+
+  .disc__item:hover {
+    background: var(--stone-25);
+  }
+
+  .disc__item h3 {
+    margin-top: var(--space-3);
+    font-size: var(--fs-lg);
+  }
+
+  .disc__item p {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    line-height: var(--lh-relaxed);
+  }
+
+  @media (min-width: 48rem) {
+    .leaders {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

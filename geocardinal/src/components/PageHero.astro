@@ -1,0 +1,131 @@
+---
+import Topo from './Topo.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  lede?: string;
+  crumbs?: { label: string; href?: string }[];
+  seed?: number;
+}
+const { eyebrow, title, lede, crumbs = [], seed = 3 } = Astro.props;
+const all = [{ label: 'Home', href: '/' }, ...crumbs];
+
+const crumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: all.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.label,
+    ...(c.href ? { item: new URL(c.href, Astro.site).href } : {}),
+  })),
+};
+---
+
+<section class="ph">
+  <div class="ph__topo">
+    <Topo seed={seed} summits={[{ x: 1180, y: 120, rings: 16, spacing: 24, start: 10 }]} />
+  </div>
+  <div class="container ph__inner">
+    {
+      crumbs.length > 0 && (
+        <nav aria-label="Breadcrumb" class="crumbs">
+          <ol role="list">
+            {all.map((c, i) => (
+              <li>
+                {c.href && i < all.length - 1 ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+                {i < all.length - 1 && <Icon name="chevron-down" class="crumbs__sep" />}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+    <p class="eyebrow ph__eyebrow">{eyebrow}</p>
+    <h1 class="ph__title">{title}</h1>
+    {lede && <p class="lede ph__lede">{lede}</p>}
+    {Astro.slots.has('default') && <div class="ph__extra"><slot /></div>}
+  </div>
+  {crumbs.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(crumbSchema)} />}
+</section>
+
+<style>
+  .ph {
+    position: relative;
+    overflow: hidden;
+    padding-top: calc(var(--header-h) + clamp(3rem, 2rem + 4vw, 6rem));
+    padding-bottom: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    background: linear-gradient(180deg, var(--stone-50), var(--stone-25));
+    border-bottom: 1px solid var(--border);
+  }
+  .ph__topo {
+    position: absolute;
+    inset: 0;
+    color: var(--stone-300);
+    mask-image: linear-gradient(90deg, transparent 15%, #000 70%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 15%, #000 70%);
+  }
+  .ph__inner {
+    position: relative;
+  }
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: var(--space-8);
+    font-size: var(--fs-xs);
+    color: var(--text-subtle);
+  }
+  .crumbs li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .crumbs a {
+    text-decoration: none;
+  }
+  .crumbs a:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
+  .crumbs [aria-current] {
+    color: var(--text-muted);
+    max-width: 28ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .crumbs :global(.crumbs__sep) {
+    width: 0.8rem;
+    height: 0.8rem;
+    transform: rotate(-90deg);
+    opacity: 0.6;
+  }
+  .ph__eyebrow {
+    margin-bottom: var(--space-5);
+  }
+  .ph__title {
+    max-width: 20ch;
+    font-size: var(--fs-5xl);
+    line-height: 1.02;
+    letter-spacing: var(--tracking-tighter);
+    animation: ph-in 800ms var(--ease-out) both;
+  }
+  .ph__lede {
+    margin-top: var(--space-6);
+    animation: ph-in 800ms 90ms var(--ease-out) both;
+  }
+  .ph__extra {
+    margin-top: var(--space-8);
+    animation: ph-in 800ms 160ms var(--ease-out) both;
+  }
+  @keyframes ph-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+</style>

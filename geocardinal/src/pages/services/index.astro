@@ -1,0 +1,251 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceCard from '../../components/ServiceCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import { services } from '../../data/services';
+import { sectors } from '../../data/site';
+
+const counts = Object.fromEntries(sectors.map((s) => [s.id, services.filter((x) => x.sectors.includes(s.id)).length]));
+---
+
+<Base
+  title="Services"
+  description="Mineral exploration, geotechnical investigations, testwork, feasibility studies, mine design, grade control, oil & gas consultancy and compliance services from Geocardinal Engineering."
+>
+  <PageHero
+    eyebrow="Services"
+    title="Engineering for every stage of the ground-to-market journey."
+    lede="Ten specialist services spanning exploration, investigation, evaluation, design, operations and sustainability — available individually or as an integrated programme."
+    crumbs={[{ label: 'Services' }]}
+    seed={5}
+  />
+
+  <section class="section section--tight-top" aria-labelledby="catalog-title">
+    <div class="container">
+      <h2 id="catalog-title" class="visually-hidden">Service catalogue</h2>
+
+      <div class="toolbar" data-reveal>
+        <div class="filters" role="group" aria-label="Filter by sector">
+          <button class="chip" aria-pressed="true" data-filter="all">
+            All <span class="chip__count">{services.length}</span>
+          </button>
+          {
+            sectors.map((s) => (
+              <button class="chip" aria-pressed="false" data-filter={s.id}>
+                {s.name} <span class="chip__count">{counts[s.id]}</span>
+              </button>
+            ))
+          }
+        </div>
+        <label class="search">
+          <span class="visually-hidden">Search services</span>
+          <Icon name="search" />
+          <input type="search" class="input search__input" placeholder="Search services" data-search autocomplete="off" />
+        </label>
+      </div>
+
+      <p class="result-count" aria-live="polite" data-count>Showing all {services.length} services</p>
+
+      <ul role="list" class="grid" data-grid>
+        {
+          services.map((s, i) => (
+            <li data-item data-sectors={s.sectors.join(' ')} data-text={`${s.title} ${s.short} ${s.capabilities.join(' ')}`.toLowerCase()}>
+              <ServiceCard service={s} index={i} />
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="empty" data-empty hidden>
+        <span class="empty__icon"><Icon name="search" /></span>
+        <h3>No services match that search</h3>
+        <p>Try a different term or clear the filters. If you can’t find what you need, our engineers can still help.</p>
+        <div class="empty__actions">
+          <button class="btn btn--secondary" data-reset>Clear filters</button>
+          <a href="/contact" class="btn btn--primary">Ask an engineer</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand title="Not sure where to start?" body="Most projects need more than one discipline. Describe your objective and we’ll propose a scope that fits your stage and budget." />
+</Base>
+
+<script>
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+  const items = [...document.querySelectorAll<HTMLElement>('[data-item]')];
+  const search = document.querySelector<HTMLInputElement>('[data-search]');
+  const count = document.querySelector<HTMLElement>('[data-count]');
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+  const grid = document.querySelector<HTMLElement>('[data-grid]');
+  const reset = document.querySelector<HTMLButtonElement>('[data-reset]');
+
+  const params = new URLSearchParams(location.search);
+  let sector = chips.some((c) => c.dataset.filter === params.get('sector')) ? params.get('sector')! : 'all';
+
+  function apply() {
+    const q = (search?.value ?? '').trim().toLowerCase();
+    let shown = 0;
+    for (const item of items) {
+      const okSector = sector === 'all' || item.dataset.sectors?.split(' ').includes(sector);
+      const okText = !q || item.dataset.text?.includes(q);
+      const visible = Boolean(okSector && okText);
+      item.hidden = !visible;
+      if (visible) shown++;
+    }
+    chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.filter === sector)));
+    if (count) {
+      const label = chips.find((c) => c.dataset.filter === sector)?.firstChild?.textContent?.trim();
+      count.textContent =
+        shown === items.length ? `Showing all ${shown} services` : `Showing ${shown} of ${items.length} services${sector !== 'all' ? ` in ${label}` : ''}${q ? ` matching “${q}”` : ''}`;
+    }
+    if (empty && grid) {
+      empty.hidden = shown > 0;
+      grid.hidden = shown === 0;
+    }
+    const url = new URL(location.href);
+    sector === 'all' ? url.searchParams.delete('sector') : url.searchParams.set('sector', sector);
+    history.replaceState(null, '', url);
+  }
+
+  chips.forEach((c) =>
+    c.addEventListener('click', () => {
+      sector = c.dataset.filter ?? 'all';
+      apply();
+    }),
+  );
+  search?.addEventListener('input', apply);
+  reset?.addEventListener('click', () => {
+    sector = 'all';
+    if (search) search.value = '';
+    apply();
+    search?.focus();
+  });
+  apply();
+</script>
+
+<style>
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-3);
+    margin-top: calc(var(--section-y) * -0.5 - 1.75rem);
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .filters {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 2px;
+    margin: -2px;
+    max-width: 100%;
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filters .chip {
+    flex: none;
+  }
+
+  .search {
+    position: relative;
+    flex: 1 1 14rem;
+    max-width: 20rem;
+  }
+
+  .search > :global(.icon) {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.05rem;
+    height: 1.05rem;
+    color: var(--stone-400);
+    pointer-events: none;
+  }
+
+  .search__input {
+    padding-left: 2.5rem;
+    min-height: 2.5rem;
+    border-radius: var(--radius-full);
+    box-shadow: none;
+    background: var(--bg-subtle);
+    border-color: transparent;
+  }
+
+  .search__input:hover {
+    border-color: var(--border-strong);
+  }
+
+  .result-count {
+    margin: var(--space-8) 0 var(--space-5);
+    font-size: var(--fs-sm);
+    color: var(--text-subtle);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-5);
+  }
+
+  .empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-16) var(--space-6);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    background: var(--bg-subtle);
+  }
+
+  .empty__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: var(--space-2);
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--stone-500);
+  }
+
+  .empty h3 {
+    font-size: var(--fs-xl);
+  }
+
+  .empty p {
+    max-width: 26rem;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .empty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  @media (max-width: 40rem) {
+    .search {
+      max-width: none;
+    }
+  }
+</style>

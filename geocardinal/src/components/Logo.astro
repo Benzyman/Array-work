@@ -1,0 +1,63 @@
+---
+/** Wordmark + compass mark. `tone` adapts colours to light or dark surfaces. */
+interface Props {
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+const { tone = 'light', class: className } = Astro.props;
+---
+
+<a href="/" class:list={['logo', `logo--${tone}`, className]} aria-label="Geocardinal Engineering — home">
+  <svg class="logo__mark" viewBox="0 0 40 40" aria-hidden="true">
+    <circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".35"></circle>
+    <circle cx="20" cy="20" r="11.5" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".6"></circle>
+    <path d="M20 3.5 23.2 20 20 36.5 16.8 20Z" fill="var(--cardinal-500)"></path>
+    <path d="M20 20 23.2 20 20 36.5 16.8 20Z" fill="currentColor" opacity=".9"></path>
+    <circle cx="20" cy="20" r="2" fill="var(--logo-bg)"></circle>
+  </svg>
+  <span class="logo__text">
+    <span class="logo__name">Geocardinal</span>
+    <span class="logo__sub">Engineering Services</span>
+  </span>
+</a>
+
+<style>
+  .logo {
+    --logo-bg: var(--surface);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    text-decoration: none;
+    color: var(--ink-900);
+  }
+  .logo--dark {
+    --logo-bg: var(--ink-900);
+    color: var(--text-on-dark);
+  }
+  .logo__mark {
+    width: 2.25rem;
+    height: 2.25rem;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+  .logo:hover .logo__mark {
+    transform: rotate(-12deg);
+  }
+  .logo__text {
+    display: grid;
+    line-height: 1;
+  }
+  .logo__name {
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    font-size: 1.125rem;
+    letter-spacing: -0.03em;
+  }
+  .logo__sub {
+    margin-top: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+</style>

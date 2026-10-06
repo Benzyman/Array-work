@@ -1,0 +1,82 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import InsightCard from '../../components/InsightCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { insights } from '../../data/insights';
+
+const [featured, ...rest] = insights;
+---
+
+<Base title="Insights" description="Reports, perspectives and press from Geocardinal Engineering on de-risking mining investment, operational challenges and responsible development in Nigeria.">
+  <PageHero
+    eyebrow="Insights"
+    title="Thinking from the field."
+    lede="Practical perspectives on de-risking Nigeria’s mining sector, managing operational challenges and building safe, profitable projects."
+    crumbs={[{ label: 'Insights' }]}
+    seed={33}
+  />
+
+  <section class="section">
+    <div class="container">
+      {
+        insights.length === 0 ? (
+          <div class="empty">
+            <h2>No articles yet</h2>
+            <p>We’re preparing our first insights. In the meantime, get in touch to discuss your project.</p>
+            <a href="/contact" class="btn btn--primary">Contact us</a>
+          </div>
+        ) : (
+          <div class="layout">
+            <div class="featured">
+              <InsightCard insight={featured} featured />
+            </div>
+            <ul role="list" class="list">
+              {rest.map((i, idx) => (
+                <li>
+                  <InsightCard insight={i} index={idx + 1} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .layout {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .featured :global(.ic) {
+    background:
+      radial-gradient(90% 120% at 100% 0%, var(--cardinal-50), transparent 60%),
+      var(--surface);
+  }
+  .list {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-16);
+    text-align: center;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+  }
+  .empty p {
+    color: var(--text-muted);
+    margin-bottom: var(--space-3);
+  }
+  @media (min-width: 60rem) {
+    .layout {
+      grid-template-columns: 1.3fr 1fr;
+    }
+  }
+</style>

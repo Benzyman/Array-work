@@ -1,0 +1,125 @@
+---
+import Icon from './Icon.astro';
+import type { Insight } from '../data/insights';
+
+interface Props {
+  insight: Insight;
+  index?: number;
+  featured?: boolean;
+}
+const { insight, index = 0, featured = false } = Astro.props;
+const outline = featured ? [...insight.body.matchAll(/<h2>(.*?)<\/h2>/g)].map((m) => m[1]).slice(0, 5) : [];
+const tone = insight.category === 'Report' ? 'badge--accent' : insight.category === 'In the press' ? 'badge--earth' : '';
+---
+
+<article class:list={['card card--interactive ic', { 'ic--featured': featured }]} data-reveal style={`--reveal-i:${index}`}>
+  <div class="ic__meta">
+    <span class:list={['badge', tone]}>{insight.category}</span>
+    <span class="ic__time"><Icon name="clock" /> {insight.readingTime}</span>
+  </div>
+  <h3 class="ic__title">
+    <a href={`/insights/${insight.slug}`} class="card__link">{insight.title}</a>
+  </h3>
+  <p class="ic__excerpt">{insight.excerpt}</p>
+  {
+    outline.length > 0 && (
+      <div class="ic__outline">
+        <p class="ic__outline-label mono">In this {insight.category.toLowerCase()}</p>
+        <ol role="list">
+          {outline.map((h) => (
+            <li set:html={h.replace(/^\d+\.\s*/, '')} />
+          ))}
+        </ol>
+      </div>
+    )
+  }
+  <span class="link-arrow ic__more" aria-hidden="true">Read article <Icon name="arrow-right" /></span>
+</article>
+
+<style>
+  .ic {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    height: 100%;
+  }
+  .ic__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .ic__time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--fs-xs);
+    color: var(--text-subtle);
+  }
+  .ic__time .icon {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+  .ic__title {
+    font-size: var(--fs-xl);
+    line-height: 1.25;
+  }
+  .ic__title a {
+    color: inherit;
+  }
+  .ic__excerpt {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+  }
+  .ic__more {
+    margin-top: auto;
+    padding-top: var(--space-2);
+  }
+  .ic:hover .ic__more {
+    color: var(--accent-hover);
+  }
+  .ic:hover .ic__more .icon {
+    transform: translateX(3px);
+  }
+  .ic__outline {
+    margin-top: var(--space-4);
+    padding-top: var(--space-5);
+    border-top: 1px dashed var(--border-strong);
+  }
+  .ic__outline-label {
+    margin-bottom: var(--space-3);
+    font-size: 0.6875rem;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-subtle);
+  }
+  .ic__outline ol {
+    display: grid;
+    gap: 0.5rem;
+    counter-reset: o;
+  }
+  .ic__outline li {
+    display: flex;
+    gap: 0.75rem;
+    font-size: var(--fs-sm);
+    color: var(--stone-700);
+    counter-increment: o;
+  }
+  .ic__outline li::before {
+    content: counter(o, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--accent);
+    padding-top: 0.1rem;
+  }
+  .ic--featured .ic__title {
+    font-size: var(--fs-2xl);
+  }
+  @media (min-width: 60rem) {
+    .ic--featured {
+      padding: var(--space-10);
+    }
+  }
+</style>

@@ -1,0 +1,149 @@
+/* ==========================================================================
+   Geocardinal design tokens
+   One source of truth for colour, type, space, radius, depth and motion.
+   ========================================================================== */
+
+:root {
+  /* --- Brand ------------------------------------------------------------ */
+  --cardinal-50: #fcf1ef;
+  --cardinal-100: #f8dcd8;
+  --cardinal-200: #efb3aa;
+  --cardinal-400: #dc5a4b;
+  --cardinal-500: #c7362b; /* primary accent */
+  --cardinal-600: #a92a21; /* hover / pressed, AA on white */
+  --cardinal-700: #86211a;
+
+  /* Laterite – the secondary earth tone, used sparingly for data & strata */
+  --laterite-100: #f5e6d6;
+  --laterite-300: #e0b48a;
+  --laterite-500: #b8733a;
+  --laterite-700: #7d4a22;
+
+  /* Ink – deep blue-black neutrals for dark surfaces */
+  --ink-950: #080c14;
+  --ink-900: #0d1420;
+  --ink-800: #151e2e;
+  --ink-700: #1f2a3d;
+  --ink-600: #2d3a50;
+  --ink-500: #7a87a0; /* AA on ink-900/950 */
+
+  /* Stone – warm neutrals for light surfaces and text */
+  --stone-0: #ffffff;
+  --stone-25: #fbfaf7;
+  --stone-50: #f6f4ef;
+  --stone-100: #eeebe3;
+  --stone-200: #e2ddd1;
+  --stone-300: #cdc6b6;
+  --stone-400: #a39b8a;
+  --stone-500: #77705f;
+  --stone-600: #5a5446;
+  --stone-700: #3d392f;
+  --stone-900: #1b1915;
+
+  /* Feedback */
+  --success-50: #ecf6ef;
+  --success-600: #1f7a45;
+  --warning-50: #fdf5e6;
+  --warning-600: #9a5b00;
+  --danger-50: #fcefed;
+  --danger-600: #b42318;
+  --info-50: #edf2fb;
+  --info-600: #2b4f8f;
+
+  /* --- Semantic roles --------------------------------------------------- */
+  --bg: var(--stone-25);
+  --bg-subtle: var(--stone-50);
+  --bg-muted: var(--stone-100);
+  --surface: var(--stone-0);
+  --surface-dark: var(--ink-900);
+  --text: var(--stone-900);
+  --text-muted: var(--stone-600);
+  --text-subtle: var(--stone-500);
+  --text-on-dark: #ece8de;
+  --text-on-dark-muted: #9aa3b4;
+  --border: var(--stone-200);
+  --border-strong: var(--stone-300);
+  --border-dark: rgba(255, 255, 255, 0.09);
+  --accent: var(--cardinal-500);
+  --accent-hover: var(--cardinal-600);
+  --focus: #2f6fed;
+
+  /* --- Typography ------------------------------------------------------- */
+  --font-display: 'Inter Tight', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Fluid type scale (min @ 375px → max @ 1440px), ratio ~1.25 */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: clamp(1.125rem, 1.07rem + 0.25vw, 1.25rem);
+  --fs-xl: clamp(1.25rem, 1.15rem + 0.45vw, 1.5rem);
+  --fs-2xl: clamp(1.5rem, 1.3rem + 0.85vw, 2rem);
+  --fs-3xl: clamp(1.875rem, 1.5rem + 1.6vw, 2.75rem);
+  --fs-4xl: clamp(2.25rem, 1.65rem + 2.6vw, 3.75rem);
+  --fs-5xl: clamp(2.625rem, 1.8rem + 3.6vw, 4.75rem);
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --lh-tight: 1.05;
+  --lh-snug: 1.2;
+  --lh-normal: 1.55;
+  --lh-relaxed: 1.7;
+
+  --tracking-tight: -0.025em;
+  --tracking-tighter: -0.035em;
+  --tracking-wide: 0.08em;
+
+  /* --- Space (4px base) ------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+
+  --section-y: clamp(4.5rem, 3rem + 6vw, 8.5rem);
+  --gutter: clamp(1rem, 0.4rem + 2.6vw, 2.5rem);
+  --container: 76rem;
+  --container-narrow: 46rem;
+  --header-h: 4.5rem;
+
+  /* --- Radius ----------------------------------------------------------- */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  /* --- Depth ------------------------------------------------------------ */
+  --shadow-xs: 0 1px 2px rgba(27, 25, 21, 0.06);
+  --shadow-sm: 0 1px 2px rgba(27, 25, 21, 0.05), 0 2px 6px -2px rgba(27, 25, 21, 0.08);
+  --shadow-md: 0 1px 2px rgba(27, 25, 21, 0.04), 0 8px 24px -8px rgba(27, 25, 21, 0.14);
+  --shadow-lg: 0 2px 4px rgba(27, 25, 21, 0.04), 0 24px 48px -16px rgba(27, 25, 21, 0.22);
+  --shadow-focus: 0 0 0 3px rgba(47, 111, 237, 0.35);
+  --ring-inset: inset 0 0 0 1px var(--border);
+
+  /* --- Motion ----------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 520ms;
+
+  --z-header: 50;
+  --z-drawer: 60;
+  --z-modal: 70;
+}

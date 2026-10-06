@@ -1,0 +1,95 @@
+---
+import Icon from './Icon.astro';
+import type { Service } from '../data/services';
+import { stages } from '../data/services';
+import { sectors } from '../data/site';
+
+interface Props {
+  service: Service;
+  index?: number;
+}
+const { service, index = 0 } = Astro.props;
+const stage = stages.find((s) => s.id === service.stage);
+const sectorNames = service.sectors.map((id) => sectors.find((s) => s.id === id)?.name).filter(Boolean);
+---
+
+<article class="card card--interactive sc" data-reveal style={`--reveal-i:${index % 3}`} data-sectors={service.sectors.join(' ')}>
+  <div class="sc__head">
+    <span class="icon-tile"><Icon name={service.icon} /></span>
+    <span class="badge">{stage?.label}</span>
+  </div>
+  <h3 class="sc__title">
+    <a href={`/services/${service.slug}`} class="card__link">{service.title}</a>
+  </h3>
+  <p class="sc__text">{service.short}</p>
+  <div class="sc__foot">
+    <span class="sc__sectors">{sectorNames.join(' · ')}</span>
+    <span class="sc__arrow" aria-hidden="true"><Icon name="arrow-up-right" /></span>
+  </div>
+</article>
+
+<style>
+  .sc {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    height: 100%;
+  }
+  .sc__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+  }
+  .sc__title {
+    font-size: var(--fs-xl);
+    line-height: 1.22;
+  }
+  .sc__title a {
+    color: inherit;
+  }
+  .sc__text {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+  }
+  .sc__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border);
+  }
+  .sc__sectors {
+    font-size: var(--fs-xs);
+    color: var(--text-subtle);
+  }
+  .sc__arrow {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    color: var(--stone-500);
+    transition: all var(--dur-base) var(--ease-out);
+  }
+  .sc__arrow .icon {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+  .sc:hover .sc__arrow {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    transform: rotate(45deg);
+  }
+  .sc:hover .icon-tile {
+    border-color: var(--cardinal-100);
+    background: var(--cardinal-50);
+  }
+</style>

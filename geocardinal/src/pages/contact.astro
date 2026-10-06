@@ -1,0 +1,422 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import FormField from '../components/FormField.astro';
+import Icon from '../components/Icon.astro';
+import { site, offices, sectors, telHref } from '../data/site';
+import { services } from '../data/services';
+
+const hq = offices[0];
+const steps = [
+  { title: 'We review your brief', body: 'An engineer reads your enquiry and identifies the disciplines involved.' },
+  { title: 'Scoping conversation', body: 'A short call to understand your site, data, constraints and timeline.' },
+  { title: 'Proposal', body: 'A clear scope, team, programme and fee — no obligation.' },
+];
+---
+
+<Base title="Contact" description={`Contact Geocardinal Engineering Services in Abuja. Call ${site.phones[0]} or email ${site.email} to discuss your geotechnical, mining or energy project.`}>
+  <PageHero
+    eyebrow="Contact"
+    title="Let’s talk about your ground."
+    lede="Whether you’re scoping an exploration programme or troubleshooting an operating mine, tell us where you are and what you need to know."
+    crumbs={[{ label: 'Contact' }]}
+    seed={21}
+  />
+
+  <section class="section section--tight-top">
+    <div class="container contact">
+      <div class="form-card card" data-reveal>
+        <div class="form-card__head">
+          <h2>Project enquiry</h2>
+          <p>Fields marked optional can be left blank. Everything else helps us route your enquiry to the right engineer.</p>
+        </div>
+
+        <form
+          data-form
+          data-success="contact-success"
+          data-endpoint={site.formEndpoint}
+          data-mailto={site.email}
+          data-subject="Project enquiry"
+          class="form"
+          novalidate
+        >
+          <div class="alert alert--error" data-summary hidden role="alert">
+            <Icon name="alert" />
+            <span></span>
+          </div>
+
+          <div class="form__row">
+            <FormField name="name" label="Full name" required autocomplete="name" placeholder="Adaeze Okafor" />
+            <FormField name="organisation" label="Organisation" autocomplete="organization" placeholder="Company or institution" />
+          </div>
+          <div class="form__row">
+            <FormField name="email" label="Email" type="email" required autocomplete="email" placeholder="name@company.com" />
+            <FormField name="phone" label="Phone" type="tel" autocomplete="tel" placeholder="+234 …" />
+          </div>
+          <div class="form__row">
+            <FormField
+              name="sector"
+              label="Sector"
+              type="select"
+              required
+              placeholder="Choose a sector"
+              options={[...sectors.map((s) => ({ value: s.name, label: s.name })), { value: 'Other', label: 'Other / not sure' }]}
+            />
+            <FormField
+              name="service"
+              label="Service of interest"
+              type="select"
+              placeholder="Choose a service"
+              options={[...services.map((s) => ({ value: s.slug, label: s.title })), { value: 'not-sure', label: 'Not sure yet' }]}
+            />
+          </div>
+          <FormField
+            name="message"
+            label="Project details"
+            type="textarea"
+            required
+            minlength={20}
+            maxlength={2000}
+            placeholder="Location, commodity or structure, current stage, what you need to know and any deadlines."
+            hint="The more context you share, the better our first response."
+          />
+
+          <div class="hp" aria-hidden="true">
+            <label>Leave this empty <input type="text" name="company_website" tabindex="-1" autocomplete="off" /></label>
+          </div>
+
+          <div class="checkbox-field field" data-invalid="false">
+            <label class="checkbox">
+              <input type="checkbox" name="consent" value="yes" required aria-describedby="consent-error" />
+              <span>I agree that Geocardinal may use these details to respond to my enquiry.</span>
+            </label>
+            <p class="field__error" id="consent-error" data-error aria-live="polite"><Icon name="alert" /><span></span></p>
+          </div>
+
+          <div class="alert alert--error" data-form-error hidden tabindex="-1" role="alert">
+            <Icon name="alert" />
+            <div>
+              <p class="alert__title">Your message wasn’t sent</p>
+              <p>Something went wrong on our side. Please try again, or email <a href={`mailto:${site.email}`}>{site.email}</a> directly.</p>
+            </div>
+          </div>
+
+          <div class="form__actions">
+            <button type="submit" class="btn btn--primary btn--lg">
+              Send enquiry <Icon name="arrow-right" class="icon--arrow" />
+            </button>
+            <p class="form__note"><Icon name="shield" /> Your details are only used to reply to you.</p>
+          </div>
+        </form>
+
+        <div id="contact-success" class="success" hidden tabindex="-1" role="status">
+          <span class="success__icon"><Icon name="check" /></span>
+          <h2>Thank you — we’ve got it.</h2>
+          <p data-mode="endpoint">Your enquiry is with our team. An engineer will be in touch shortly to arrange a scoping conversation.</p>
+          <p data-mode="mailto" hidden>
+            Your email app should now be open with your enquiry ready to send. If nothing opened, email us at
+            <a href={`mailto:${site.email}`}>{site.email}</a>.
+          </p>
+          <button type="button" class="btn btn--secondary" data-reset-form>Send another enquiry</button>
+        </div>
+      </div>
+
+      <aside class="side" aria-label="Other ways to reach us">
+        <div class="side__block" data-reveal>
+          <p class="eyebrow">Direct</p>
+          <ul role="list" class="direct">
+            <li>
+              <span class="icon-tile"><Icon name="mail" /></span>
+              <div>
+                <p class="direct__k">Email</p>
+                <a href={`mailto:${site.email}`}>{site.email}</a>
+              </div>
+            </li>
+            <li>
+              <span class="icon-tile"><Icon name="phone" /></span>
+              <div>
+                <p class="direct__k">Phone</p>
+                {site.phones.map((p) => <a href={telHref(p)}>{p}</a>)}
+              </div>
+            </li>
+            <li>
+              <span class="icon-tile"><Icon name="clock" /></span>
+              <div>
+                <p class="direct__k">Office hours</p>
+                <p>{site.hours}</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="side__block" data-reveal>
+          <p class="eyebrow">What happens next</p>
+          <ol role="list" class="next">
+            {
+              steps.map((s, i) => (
+                <li>
+                  <span class="next__num mono">{i + 1}</span>
+                  <div>
+                    <p class="next__title">{s.title}</p>
+                    <p class="next__body">{s.body}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--subtle" id="offices" aria-labelledby="offices-title">
+    <div class="container">
+      <div class="offices-head">
+        <p class="eyebrow">Offices</p>
+        <h2 id="offices-title">Where to find us</h2>
+      </div>
+      <div class="offices">
+        <article class="hq on-dark" data-reveal>
+          <span class="badge badge--dark">{hq.role}</span>
+          <h3>{hq.city}, {hq.country}</h3>
+          <address>{'address' in hq && hq.address.map((l) => <span>{l}</span>)}</address>
+          <p class="mono hq__coords">{hq.coords}</p>
+          <a
+            class="btn btn--ghost-dark"
+            href="https://www.google.com/maps/search/?api=1&query=48+Abidjan+Street+Wuse+Zone+3+Abuja"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Icon name="map-pin" /> Open in Google Maps
+          </a>
+        </article>
+        <div class="table-wrap" data-reveal>
+          <table class="table">
+            <caption class="visually-hidden">Branch and international offices</caption>
+            <thead>
+              <tr>
+                <th scope="col">Office</th>
+                <th scope="col">Region</th>
+                <th scope="col">Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                offices.slice(1).map((o) => (
+                  <tr>
+                    <td>{o.city}</td>
+                    <td>{o.country}</td>
+                    <td>
+                      <span class="badge">{o.role}</span>
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import '../scripts/forms';
+
+  // Pre-select a service when arriving from a service page (?service=slug)
+  const slug = new URLSearchParams(location.search).get('service');
+  const select = document.querySelector<HTMLSelectElement>('select[name="service"]');
+  if (slug && select && [...select.options].some((o) => o.value === slug)) select.value = slug;
+</script>
+
+<style>
+  .contact {
+    display: grid;
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  .form-card {
+    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+    box-shadow: var(--shadow-md);
+    margin-top: calc(var(--section-y) * -0.5 - 1.75rem);
+  }
+
+  .form-card__head {
+    margin-bottom: var(--space-8);
+  }
+
+  .form-card__head h2 {
+    font-size: var(--fs-2xl);
+  }
+
+  .form-card__head p {
+    margin-top: var(--space-2);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+    padding-top: var(--space-2);
+  }
+
+  .form__note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: var(--fs-xs);
+    color: var(--text-subtle);
+  }
+
+  .form__note :global(.icon) {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .side {
+    display: grid;
+    gap: var(--space-10);
+  }
+
+  .side__block {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .direct {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .direct li {
+    display: flex;
+    gap: var(--space-4);
+  }
+
+  .direct li > div {
+    display: grid;
+    gap: 0.15rem;
+    font-size: var(--fs-sm);
+  }
+
+  .direct a {
+    text-decoration: none;
+    font-weight: var(--fw-medium);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .direct a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  .direct__k {
+    font-size: var(--fs-xs);
+    color: var(--text-subtle);
+  }
+
+  .next {
+    display: grid;
+    gap: 0;
+  }
+
+  .next li {
+    position: relative;
+    display: flex;
+    gap: var(--space-4);
+    padding-bottom: var(--space-6);
+  }
+
+  .next li:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 0.875rem;
+    top: 2rem;
+    bottom: 0.25rem;
+    width: 1px;
+    background: var(--border-strong);
+  }
+
+  .next__num {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    font-size: var(--fs-xs);
+  }
+
+  .next__title {
+    font-weight: var(--fw-semibold);
+    font-size: var(--fs-sm);
+  }
+
+  .next__body {
+    margin-top: 0.15rem;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .offices-head {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+  }
+
+  .offices-head h2 {
+    font-size: var(--fs-3xl);
+    letter-spacing: var(--tracking-tighter);
+  }
+
+  .offices {
+    display: grid;
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  .hq {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    padding: var(--space-8);
+    border-radius: var(--radius-lg);
+    background: var(--ink-900);
+    color: var(--text-on-dark);
+  }
+
+  .hq h3 {
+    font-size: var(--fs-2xl);
+    color: #fff;
+  }
+
+  .hq address {
+    display: grid;
+    font-style: normal;
+    color: var(--text-on-dark-muted);
+  }
+
+  .hq__coords {
+    font-size: var(--fs-xs);
+    color: var(--ink-500);
+  }
+
+  @media (min-width: 64rem) {
+    .contact {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: var(--space-16);
+    }
+    .side {
+      padding-top: var(--space-4);
+    }
+    .offices {
+      grid-template-columns: 1fr 1.4fr;
+    }
+  }
+</style>

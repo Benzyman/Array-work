@@ -1,0 +1,316 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { site, values, sectors, offices } from '../data/site';
+import { leadership } from '../data/team';
+
+const approach = [
+  {
+    title: 'Measure first',
+    body: 'We start from the ground: investigation, sampling and testwork designed to answer the questions that move value — not to fill a report.',
+  },
+  {
+    title: 'Integrate disciplines',
+    body: 'Geologists, geotechnical and mining engineers, metallurgists and compliance specialists work from one shared data set.',
+  },
+  {
+    title: 'Design for operation',
+    body: 'Every design is tested against real equipment, real crews and real conditions on site — so plans survive contact with the mine.',
+  },
+  {
+    title: 'Leave capability behind',
+    body: 'We train and mentor local teams on every engagement, building capacity that outlasts the project.',
+  },
+];
+---
+
+<Base title="About" description="Geocardinal Engineering Services is a registered Nigerian engineering consultancy, founded in 2010, delivering geotechnical, mining and energy engineering across Africa and beyond.">
+  <PageHero
+    eyebrow="About Geocardinal"
+    title="A trusted partner for the ground beneath Africa’s growth."
+    lede={`Since ${site.founded}, we have helped operators, investors and governments make confident decisions about mineral, energy and infrastructure projects.`}
+    crumbs={[{ label: 'About' }]}
+    seed={8}
+  />
+
+  <section class="section">
+    <div class="container story">
+      <div class="story__statement" data-reveal>
+        <p class="eyebrow">Who we are</p>
+        <p class="statement">
+          A registered firm of dedicated professionals offering developmental services in <em>conceptual design, energy development, management</em> and <em>mining engineering consultancy</em> — with a particular focus on solid minerals.
+        </p>
+      </div>
+      <div class="story__body prose" data-reveal>
+        <p>
+          Geocardinal Engineering Services Limited was established in Abuja in {site.founded} to solve the most pressing geotechnical challenges faced by resource and infrastructure projects. Today our services span {sectors.map((s) => s.name).join(', ').replace(/, ([^,]*)$/, ' and $1')}.
+        </p>
+        <p>
+          Our professionals combine a firm grasp of regional context — terrain, climate and on-the-ground realities across Nigeria, South Africa, Europe and the rest of Africa — with knowledge of international industrial systems and reporting standards.
+        </p>
+        <p>
+          We believe in being a trustworthy company that builds lasting, mutually beneficial partnerships, and we are known for our commitment to high ethical standards of corporate governance and professionalism in every aspect of our work.
+        </p>
+      </div>
+    </div>
+
+    <div class="container">
+      <dl class="facts" data-reveal>
+        <div><dt>Founded</dt><dd>{site.founded}</dd></div>
+        <div><dt>Head office</dt><dd>Abuja, FCT</dd></div>
+        <div><dt>Offices</dt><dd>{offices.length} in 3 countries</dd></div>
+        <div><dt>Sectors</dt><dd>{sectors.length}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section section--subtle" aria-labelledby="approach-title">
+    <div class="container">
+      <SectionHeader id="approach-title" eyebrow="How we work" title="Rigour you can trace back to the rock." align="split" lede="Four principles shape every engagement, from a one-week site visit to a multi-year feasibility programme." />
+      <ol role="list" class="approach">
+        {
+          approach.map((a, i) => (
+            <li class="card approach__item" data-reveal style={`--reveal-i:${i}`}>
+              <span class="approach__num mono">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{a.title}</h3>
+              <p>{a.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="values-title">
+    <div class="container">
+      <SectionHeader id="values-title" eyebrow="Values" title="What we stand for." align="split" lede="We value talent cultivation, encourage creative innovation and hold ourselves to creditable integrity." />
+      <ul role="list" class="values">
+        {
+          values.map((v, i) => (
+            <li class="values__item" data-reveal style={`--reveal-i:${i}`}>
+              <span class="icon-tile"><Icon name={v.icon} /></span>
+              <h3>{v.title}</h3>
+              <p>{v.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--dark on-dark" aria-labelledby="lead-title">
+    <div class="container lead">
+      <div data-reveal>
+        <p class="eyebrow">Leadership</p>
+        <h2 id="lead-title" class="lead__title">Led by engineers who have worked the ground.</h2>
+        <p class="lead__text">Our leadership combines decades of academic, consulting and operational experience with a commitment to growing the next generation of African engineers.</p>
+        <a href="/team" class="btn btn--ghost-dark">Meet the team <Icon name="arrow-right" class="icon--arrow" /></a>
+      </div>
+      <ul role="list" class="lead__people">
+        {
+          leadership.map((p, i) => (
+            <li class="person" data-reveal style={`--reveal-i:${i}`}>
+              <span class="person__avatar" aria-hidden="true">{p.initials}</span>
+              <div>
+                <p class="person__name">{p.name}</p>
+                <p class="person__role">{p.role}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .story {
+    display: grid;
+    gap: var(--space-10);
+  }
+
+  .story__statement {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+
+  .statement {
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    font-weight: var(--fw-medium);
+    line-height: 1.18;
+    letter-spacing: var(--tracking-tighter);
+    color: var(--stone-500);
+  }
+
+  .statement em {
+    font-style: normal;
+    color: var(--text);
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .facts > div {
+    padding: var(--space-5) var(--space-4) var(--space-5) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .facts dt {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-subtle);
+  }
+
+  .facts dd {
+    margin-top: var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .approach {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-4);
+  }
+
+  .approach__item {
+    padding: var(--space-6);
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+
+  .approach__num {
+    margin-bottom: var(--space-6);
+    font-size: var(--fs-xs);
+    color: var(--accent);
+  }
+
+  .approach__item h3 {
+    font-size: var(--fs-xl);
+  }
+
+  .approach__item p,
+  .values__item p {
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+    color: var(--text-muted);
+  }
+
+  .values {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-10) var(--space-8);
+  }
+
+  .values__item {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+
+  .values__item h3 {
+    margin-top: var(--space-2);
+    font-size: var(--fs-lg);
+  }
+
+  .lead {
+    display: grid;
+    gap: var(--space-12);
+    align-items: center;
+  }
+
+  .lead__title {
+    margin-top: var(--space-4);
+    font-size: var(--fs-4xl);
+    letter-spacing: var(--tracking-tighter);
+    line-height: 1.08;
+    color: #fff;
+  }
+
+  .lead__text {
+    margin: var(--space-5) 0 var(--space-8);
+    max-width: 32rem;
+    color: var(--text-on-dark-muted);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-relaxed);
+  }
+
+  .lead__people {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .person {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-dark);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .person__avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cardinal-500), var(--laterite-500));
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.02em;
+  }
+
+  .person__name {
+    font-weight: var(--fw-semibold);
+    color: #fff;
+  }
+
+  .person__role {
+    font-size: var(--fs-sm);
+    color: var(--text-on-dark-muted);
+  }
+
+  @media (min-width: 40rem) {
+    .facts {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .facts > div + div {
+      padding-left: var(--space-5);
+      border-left: 1px solid var(--border);
+    }
+    .facts > div:nth-child(3) {
+      padding-left: var(--space-5);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .story {
+      grid-template-columns: 1.1fr 1fr;
+      gap: var(--space-16);
+    }
+    .lead {
+      grid-template-columns: 1.1fr 1fr;
+      gap: var(--space-16);
+    }
+  }
+</style>

@@ -1,0 +1,79 @@
+---
+import { contours, type Summit } from '../lib/topo';
+
+interface Props {
+  summits?: Summit[];
+  seed?: number;
+  width?: number;
+  height?: number;
+  class?: string;
+  animate?: boolean;
+}
+
+const {
+  summits = [
+    { x: 980, y: 260, rings: 18, spacing: 26, start: 14 },
+    { x: 260, y: 640, rings: 12, spacing: 30, start: 20 },
+  ],
+  seed = 11,
+  width = 1440,
+  height = 820,
+  class: className,
+  animate = true,
+} = Astro.props;
+
+const lines = contours(summits, seed);
+---
+
+<svg
+  class:list={['topo', { 'topo--animate': animate }, className]}
+  viewBox={`0 0 ${width} ${height}`}
+  preserveAspectRatio="xMidYMid slice"
+  aria-hidden="true"
+  focusable="false"
+>
+  <g fill="none" stroke="currentColor" stroke-linejoin="round">
+    {lines.map((l, i) => (
+      <path d={l.d} stroke-width={l.index ? 1.25 : 0.7} opacity={l.index ? 0.9 : 0.5} style={`--i:${i}`} />
+    ))}
+  </g>
+</svg>
+
+<style>
+  .topo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .topo--animate g {
+    transform-origin: 60% 40%;
+    animation: topo-drift 60s var(--ease-in-out) infinite alternate;
+  }
+  .topo--animate path {
+    stroke-dasharray: 2400;
+    stroke-dashoffset: 2400;
+    animation: topo-draw 2.6s var(--ease-out) forwards;
+    animation-delay: calc(var(--i) * 45ms);
+  }
+  @keyframes topo-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes topo-drift {
+    from {
+      transform: scale(1) rotate(0deg);
+    }
+    to {
+      transform: scale(1.06) rotate(2deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .topo--animate path {
+      stroke-dasharray: none;
+      stroke-dashoffset: 0;
+    }
+  }
+</style>

@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import Topo from '../components/Topo.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<Base title="Page not found" noindex headerTone="dark">
+  <section class="nf on-dark">
+    <div class="nf__topo"><Topo seed={404} summits={[{ x: 720, y: 410, rings: 22, spacing: 22, start: 8 }]} /></div>
+    <div class="container nf__inner">
+      <p class="mono nf__code">ERR 404 · No core recovered</p>
+      <h1>We drilled here and found nothing.</h1>
+      <p class="nf__text">The page you’re looking for may have moved, or the link may be out of date.</p>
+      <div class="nf__actions">
+        <a href="/" class="btn btn--primary btn--lg"><Icon name="arrow-left" /> Back to home</a>
+        <a href="/services" class="btn btn--ghost-dark btn--lg">Browse services</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: calc(var(--header-h) + 4rem) 0 6rem;
+    background: var(--ink-900);
+    color: var(--text-on-dark);
+    text-align: center;
+  }
+  .nf__topo {
+    position: absolute;
+    inset: 0;
+    color: rgba(255, 255, 255, 0.1);
+    mask-image: radial-gradient(circle at center, #000 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(circle at center, #000 20%, transparent 70%);
+  }
+  .nf__inner {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-5);
+  }
+  .nf__code {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.1em;
+    color: var(--cardinal-200);
+  }
+  h1 {
+    max-width: 16ch;
+    font-size: var(--fs-5xl);
+    letter-spacing: -0.04em;
+    line-height: 1.02;
+    color: #fff;
+  }
+  .nf__text {
+    max-width: 28rem;
+    color: var(--text-on-dark-muted);
+    font-size: var(--fs-lg);
+  }
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+</style>

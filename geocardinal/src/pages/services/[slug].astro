@@ -1,0 +1,416 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceCard from '../../components/ServiceCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import { services, stages, type Service } from '../../data/services';
+import { sectors, site, telHref } from '../../data/site';
+
+export function getStaticPaths() {
+  return services.map((service) => ({ params: { slug: service.slug }, props: { service } }));
+}
+
+interface Props {
+  service: Service;
+}
+
+const { service } = Astro.props;
+const stageIndex = stages.findIndex((s) => s.id === service.stage);
+const sectorList = sectors.filter((s) => service.sectors.includes(s.id));
+const related = services
+  .filter((s) => s.slug !== service.slug)
+  .map((s) => ({ s, score: (s.stage === service.stage ? 2 : 0) + s.sectors.filter((x) => service.sectors.includes(x)).length + (Math.abs(stages.findIndex((st) => st.id === s.stage) - stageIndex) === 1 ? 1 : 0) }))
+  .sort((a, b) => b.score - a.score)
+  .slice(0, 3)
+  .map((x) => x.s);
+
+const idx = services.findIndex((s) => s.slug === service.slug);
+const prev = services[(idx - 1 + services.length) % services.length];
+const next = services[(idx + 1) % services.length];
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: service.title,
+  description: service.intro,
+  provider: { '@type': 'Organization', name: site.name, url: site.url },
+  areaServed: 'Africa',
+};
+---
+
+<Base title={service.title} description={service.short} schema={[schema]}>
+  <PageHero eyebrow={`Service · ${stages[stageIndex].label}`} title={service.title} lede={service.intro} crumbs={[{ label: 'Services', href: '/services' }, { label: service.title }]} seed={idx + 13}>
+    <ul role="list" class="tags">
+      {sectorList.map((s) => <li><a class="badge" href={`/services?sector=${s.id}`}><Icon name={s.icon} />{s.name}</a></li>)}
+    </ul>
+<ol role="list" class="track" aria-label="Project lifecycle position">
+      {
+        stages.map((st, i) => (
+          <li class:list={['track__step', { 'is-current': i === stageIndex, 'is-past': i < stageIndex }]} aria-current={i === stageIndex ? 'step' : undefined}>
+            <span class="track__bar" />
+            <span class="track__label mono">
+              {String(i + 1).padStart(2, '0')} {st.label}
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+  </PageHero>
+
+  <section class="section detail">
+    <div class="container detail__grid">
+      <div class="detail__main">
+        <div class="prose" data-reveal>
+          {service.overview.map((p) => <p>{p}</p>)}
+        </div>
+
+        <div class="block" data-reveal>
+          <h2 class="block__title">What we do</h2>
+          <ul role="list" class="checks">
+            {
+              service.capabilities.map((c) => (
+                <li>
+                  <span class="checks__icon"><Icon name="check" /></span>
+                  {c}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="block" data-reveal>
+          <h2 class="block__title">What you receive</h2>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Deliverable</th>
+                  <th scope="col">Typical stage</th>
+                </tr>
+              </thead>
+              <tbody>
+                {
+                  service.deliverables.map((d) => (
+                    <tr>
+                      <td>{d}</td>
+                      <td>{stages[stageIndex].label}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="block" data-reveal>
+          <h2 class="block__title">Outcomes</h2>
+          <div class="outcomes">
+            {
+              service.outcomes.map((o, i) => (
+                <div class="outcome">
+                  <span class="outcome__num mono">0{i + 1}</span>
+                  <h3>{o.label}</h3>
+                  <p>{o.body}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+
+      <aside class="detail__aside" aria-label="Enquire about this service">
+        <div class="enquire card">
+          <span class="icon-tile"><Icon name={service.icon} /></span>
+          <h2 class="enquire__title">Discuss {service.title.split(',')[0].toLowerCase()}</h2>
+          <p class="enquire__text">Share your site, stage and timeline. We’ll outline a scope and the right team.</p>
+          <a href={`/contact?service=${service.slug}`} class="btn btn--primary btn--block">
+            Request a proposal <Icon name="arrow-right" class="icon--arrow" />
+          </a>
+          <div class="enquire__alt">
+            <a href={telHref(site.phones[0])}><Icon name="phone" /> {site.phones[0]}</a>
+            <a href={`mailto:${site.email}?subject=${encodeURIComponent(service.title)}`}><Icon name="mail" /> Email us</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--subtle" aria-labelledby="rel-title">
+    <div class="container">
+      <div class="rel__head">
+        <h2 id="rel-title" class="rel__title">Often combined with</h2>
+        <nav class="pager" aria-label="Service navigation">
+          <a href={`/services/${prev.slug}`} class="pager__btn" aria-label={`Previous: ${prev.title}`}><Icon name="arrow-left" /></a>
+          <a href={`/services/${next.slug}`} class="pager__btn" aria-label={`Next: ${next.title}`}><Icon name="arrow-right" /></a>
+        </nav>
+      </div>
+      <ul role="list" class="rel__grid">
+        {related.map((s, i) => <li><ServiceCard service={s} index={i} /></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .tags .badge {
+    height: 1.9rem;
+    padding: 0 0.7rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .tags .badge:hover {
+    border-color: var(--stone-400);
+  }
+
+  .tags :global(.icon) {
+    width: 0.85rem;
+    height: 0.85rem;
+    color: var(--accent);
+  }
+
+  .track {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    margin-top: var(--space-10);
+    max-width: 40rem;
+  }
+
+  .track__step {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .track__bar {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--stone-200);
+  }
+
+  .is-past .track__bar {
+    background: var(--stone-400);
+  }
+
+  .is-current .track__bar {
+    background: var(--accent);
+  }
+
+  .track__label {
+    font-size: 0.625rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .is-current .track__label {
+    color: var(--accent-hover);
+    font-weight: var(--fw-medium);
+  }
+
+  @media (max-width: 40rem) {
+    .track__step:not(.is-current) .track__label {
+      visibility: hidden;
+    }
+    .track__step.is-current .track__label {
+      overflow: visible;
+    }
+  }
+
+  .detail__grid {
+    display: grid;
+    gap: var(--space-12);
+  }
+
+  .detail__main {
+    display: grid;
+    gap: clamp(3rem, 2rem + 2vw, 4.5rem);
+    min-width: 0;
+  }
+
+  .block__title {
+    margin-bottom: var(--space-6);
+    font-size: var(--fs-2xl);
+  }
+
+  .checks {
+    display: grid;
+    gap: var(--space-3) var(--space-8);
+  }
+
+  .checks li {
+    display: flex;
+    gap: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-md);
+    color: var(--stone-700);
+  }
+
+  .checks__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.4rem;
+    height: 1.4rem;
+    margin-top: 0.05rem;
+    border-radius: 50%;
+    background: var(--cardinal-50);
+    color: var(--accent);
+  }
+
+  .checks__icon :global(.icon) {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .outcomes {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .outcome {
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    background: var(--ink-900);
+    color: var(--text-on-dark);
+  }
+
+  .outcome__num {
+    font-size: var(--fs-xs);
+    color: var(--cardinal-200);
+  }
+
+  .outcome h3 {
+    margin-top: var(--space-6);
+    font-size: var(--fs-xl);
+    color: #fff;
+  }
+
+  .outcome p {
+    margin-top: var(--space-2);
+    color: var(--text-on-dark-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .enquire {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-md);
+  }
+
+  .enquire__title {
+    font-size: var(--fs-xl);
+  }
+
+  .enquire__text {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .enquire__alt {
+    display: grid;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-sm);
+  }
+
+  .enquire__alt a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .enquire__alt a:hover {
+    color: var(--text);
+  }
+
+  .enquire__alt :global(.icon) {
+    width: 1rem;
+    height: 1rem;
+    color: var(--accent);
+  }
+
+  .rel__head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+
+  .rel__title {
+    font-size: var(--fs-3xl);
+    letter-spacing: var(--tracking-tighter);
+  }
+
+  .pager {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .pager__btn {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--stone-700);
+    transition: all var(--dur-fast) var(--ease-out);
+  }
+
+  .pager__btn:hover {
+    background: var(--ink-900);
+    border-color: var(--ink-900);
+    color: #fff;
+  }
+
+  .rel__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 48rem) {
+    .checks {
+      grid-template-columns: 1fr 1fr;
+    }
+    .outcomes {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .detail__grid {
+      grid-template-columns: minmax(0, 1fr) 21rem;
+      gap: var(--space-16);
+    }
+    .detail__aside {
+      position: relative;
+    }
+    .enquire {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-6));
+    }
+  }
+</style>

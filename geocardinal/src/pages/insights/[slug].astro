@@ -1,0 +1,167 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import InsightCard from '../../components/InsightCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import { insights, type Insight } from '../../data/insights';
+import { site } from '../../data/site';
+
+export function getStaticPaths() {
+  return insights.map((insight) => ({ params: { slug: insight.slug }, props: { insight } }));
+}
+
+interface Props {
+  insight: Insight;
+}
+const { insight } = Astro.props;
+const others = insights.filter((i) => i.slug !== insight.slug).slice(0, 2);
+const url = new URL(`/insights/${insight.slug}`, site.url).href;
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: insight.title,
+  description: insight.excerpt,
+  publisher: { '@type': 'Organization', name: site.name },
+  mainEntityOfPage: url,
+};
+---
+
+<Base title={insight.title.replace(/[“”]/g, '')} description={insight.excerpt} schema={[schema]}>
+  <PageHero eyebrow={`${insight.category} · ${insight.readingTime}`} title={insight.title} lede={insight.excerpt} crumbs={[{ label: 'Insights', href: '/insights' }, { label: insight.title.replace(/[“”]/g, '') }]} seed={insight.title.length} />
+
+  <section class="section">
+    <div class="container article">
+      <article class="prose article__body" set:html={insight.body} />
+      <aside class="article__aside" aria-label="Share and contact">
+        <div class="aside__inner">
+          <p class="eyebrow">Share</p>
+          <div class="share">
+            <a class="share__btn" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`} target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn (opens in a new tab)"><Icon name="linkedin" /></a>
+            <a class="share__btn" href={`mailto:?subject=${encodeURIComponent(insight.title)}&body=${encodeURIComponent(url)}`} aria-label="Share by email"><Icon name="mail" /></a>
+            <button class="share__btn" data-copy={url} aria-label="Copy link"><Icon name="link" /></button>
+          </div>
+          <p class="share__status" role="status" data-copy-status></p>
+          <div class="aside__cta">
+            <p>Facing a similar challenge on your project?</p>
+            <a href="/contact" class="link-arrow">Talk to an engineer <Icon name="arrow-right" /></a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--subtle" aria-labelledby="more-title">
+    <div class="container">
+      <div class="more__head">
+        <h2 id="more-title">More insights</h2>
+        <a href="/insights" class="link-arrow">All insights <Icon name="arrow-right" /></a>
+      </div>
+      <div class="more">
+        {others.map((i, idx) => <InsightCard insight={i} index={idx} />)}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    const status = document.querySelector<HTMLElement>('[data-copy-status]');
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy!);
+        if (status) status.textContent = 'Link copied to clipboard';
+      } catch {
+        if (status) status.textContent = 'Copy failed — please copy the address bar URL';
+      }
+      setTimeout(() => status && (status.textContent = ''), 2500);
+    });
+  });
+</script>
+
+<style>
+  .article {
+    display: grid;
+    gap: var(--space-12);
+  }
+  .article__body {
+    max-width: 42rem;
+  }
+  .article__body :global(p:first-child) {
+    font-size: var(--fs-lg);
+    color: var(--text);
+  }
+  .aside__inner {
+    display: grid;
+    gap: var(--space-4);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border);
+  }
+  .share {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .share__btn {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--stone-700);
+    cursor: pointer;
+    transition: all var(--dur-fast) var(--ease-out);
+  }
+  .share__btn:hover {
+    background: var(--ink-900);
+    border-color: var(--ink-900);
+    color: #fff;
+  }
+  .share__btn :global(.icon) {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+  .share__status {
+    min-height: 1.2em;
+    font-size: var(--fs-xs);
+    color: var(--success-600);
+  }
+  .aside__cta {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--bg-subtle);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+  .more__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+  .more__head h2 {
+    font-size: var(--fs-3xl);
+    letter-spacing: var(--tracking-tighter);
+  }
+  .more {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-5);
+  }
+  @media (min-width: 64rem) {
+    .article {
+      grid-template-columns: minmax(0, 1fr) 16rem;
+      gap: var(--space-20);
+    }
+    .aside__inner {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-6));
+    }
+  }
+</style>
