@@ -143,7 +143,8 @@ const jobSchemas = roles.map((r) => ({
 
         <div id="apply-success" class="success" hidden tabindex="-1" role="status">
           <span class="success__icon"><Icon name="check" /></span>
-          <h2>Application received</h2>
+          <h2 data-mode="endpoint">Application received</h2>
+          <h2 data-mode="mailto" hidden>Almost there — just press send.</h2>
           <p data-mode="endpoint">Thank you for your interest in Geocardinal. Our team will review your application and contact shortlisted candidates.</p>
           <p data-mode="mailto" hidden>Your email app should now be open with your application ready to send. If nothing opened, email <a href={`mailto:${site.careersEmail}`}>{site.careersEmail}</a>.</p>
           <button type="button" class="btn btn--secondary" data-reset-form>Submit another application</button>

@@ -113,8 +113,8 @@ function initForm(form: HTMLFormElement) {
       form.hidden = true;
       if (success) {
         success.hidden = false;
-        success.querySelector<HTMLElement>('[data-mode="endpoint"]')?.toggleAttribute('hidden', !endpoint);
-        success.querySelector<HTMLElement>('[data-mode="mailto"]')?.toggleAttribute('hidden', Boolean(endpoint));
+        success.querySelectorAll<HTMLElement>('[data-mode="endpoint"]').forEach((el) => (el.hidden = !endpoint));
+        success.querySelectorAll<HTMLElement>('[data-mode="mailto"]').forEach((el) => (el.hidden = Boolean(endpoint)));
         success.focus();
       }
     } catch {
