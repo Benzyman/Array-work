@@ -2,6 +2,8 @@
 
 Product names, categories and descriptions are **suggestions based on your photos**. Change anything. Each description only covers what's visible in the artwork, so add fabric, weight and fit yourself.
 
+**From your store video (verryrarre.com.ng):** Warning tee = ₦17,000, "100% Cotton T-shirt, Heat press design". ❓ Do the other tees use the same fabric/print method and price?
+
 **Still needed from you (marked ❓):** price in ₦, sizes, colours, stock per size, sale price (if any), and whether names are right.
 
 The images in `images/` are your photos, squared and resized for the web. Nothing in the garments was changed. Your untouched originals are in `originals/`.
@@ -49,14 +51,16 @@ The images in `images/` are your photos, squared and resized for the web. Nothin
 | Price / sizes / stock per colour | ❓ |
 | Same price for both colours? | ❓ |
 
-## 5. Warning Sign Tee *(second batch)*
+## 5. Warning Tee *(second batch + your store video)*
 | Field | Value |
 |---|---|
+| Name | **Warning tee** (as on verryrarre.com.ng) |
 | Category | T-Shirts |
 | Colour | Black |
 | Images | Front + back photo, front-only photo (files needed, see below) |
-| Description | Black tee. Front: a weathered red-and-cream warning sign reading WARNING · VRRE · CONTROVERSY SELLS · NO TRESPASSING · RESTRICTED AREA. Back: a red-glow artwork of three figures under spiked flames, signed VERRY RARRE in red script. |
-| Price / sizes / stock | ❓ |
+| Description | **100% cotton T-shirt, heat-press design** (from your current store). Front: a weathered red-and-cream warning sign reading WARNING · VRRE · CONTROVERSY SELLS · NO TRESPASSING · RESTRICTED AREA. Back: a red-glow artwork of three figures under spiked flames, signed VERRY RARRE in red script. |
+| Price ₦ | **17,000** (from your current store) |
+| Sizes + stock | ❓ |
 
 ## 6. Camo VRRE artwork *(second batch)*
 The gothic VRRE wordmark with a woodland-camo fill, on a plain background. ❓ **Is this a product** (e.g. a camo-logo tee or hoodie, so send the garment photo), **or a logo/print file** for the site?

@@ -19,7 +19,7 @@ Before paying, check the plan lets you **upload themes and plugins** (the Manage
 
 **Terms:**
 - **Hosting:** a computer that keeps your site online 24/7.
-- **Domain:** your address, e.g. `verryrarre.com`.
+- **Domain:** your address. You already use `verryrarre.com.ng`. A `.com.ng` domain stays with its Nigerian registrar; we just point its DNS (the address book entry) at GoDaddy hosting at launch (Stage 6).
 - **SSL/HTTPS:** the padlock; it encrypts checkout data.
 - **Plugin:** an add-on for WordPress.
 - **Theme:** the design layer.
