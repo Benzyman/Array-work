@@ -11,8 +11,8 @@
 All of this is already filled in `products-import.csv`, ready for WooCommerce to import.
 
 **Still open (❓):**
-- **Stock per size.** The CSV's `Stock` column is empty, so every size imports as "in stock" with no count. Put a number in a size's `Stock` cell before importing and WooCommerce will count it down with each order and show "Sold out" at 0.
-- **Photo files** for the Warning Tee (front and back) and the white Logo Tee. They came through as chat images only.
+- **Stock:** not tracked (your choice). Every size shows as available. To mark one size as sold out: **Products > edit product > Variations > open the size > Stock status: Out of stock**. The product shows "Sold out" once every size is out.
+- **Photos for the Warning Tee and the white Logo Tee:** add these yourself in WordPress from your phone or computer: **Products > edit product > Product image** (and for the white tee: **Variations > White > upload image**). Until then those products show a grey placeholder.
 - **Hoodie fabric.** All tees are 100% cotton with heat-press prints (confirmed, now in every tee description). What's the hoodie made of?
 
 ## Images
