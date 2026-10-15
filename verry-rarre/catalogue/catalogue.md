@@ -13,7 +13,7 @@ All of this is already filled in `products-import.csv`, ready for WooCommerce to
 **Still open (❓):**
 - **Stock per size.** The CSV's `Stock` column is empty, so every size imports as "in stock" with no count. Put a number in a size's `Stock` cell before importing and WooCommerce will count it down with each order and show "Sold out" at 0.
 - **Photo files** for the Warning Tee (front and back) and the white Logo Tee. They came through as chat images only.
-- **Fabric.** "100% cotton, heat-press" comes from your current site for the Warning Tee. Is it the same for every tee? I'll add it to all the descriptions if so.
+- **Hoodie fabric.** All tees are 100% cotton with heat-press prints (confirmed, now in every tee description). What's the hoodie made of?
 
 ## Images
 `images/` holds your photos, squared and resized for the web. The garments weren't altered. Untouched originals are in `originals/`.
