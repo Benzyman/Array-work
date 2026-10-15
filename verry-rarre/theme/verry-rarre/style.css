@@ -1,0 +1,23 @@
+/*
+Theme Name:   Verry Rarre
+Theme URI:    https://www.instagram.com/verry_rarre/
+Author:       VERRY RARRE
+Description:  Custom streetwear storefront theme for VERRY RARRE. Built for WooCommerce: bold type, graphic product grids, Naira pricing and WhatsApp contact.
+Version:      1.0.0
+Requires at least: 6.4
+Tested up to: 6.8
+Requires PHP: 8.0
+License:      GNU General Public License v2 or later
+License URI:  https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain:  verry-rarre
+Tags:         e-commerce, custom-logo, custom-menu, featured-images, translation-ready
+
+WooCommerce tested up to: 10.2
+*/
+
+/*
+ * WordPress reads the comment above to learn the theme's name and version.
+ * The real styles live in:
+ *   assets/css/main.css  - colours, fonts, header, footer, homepage
+ *   assets/css/shop.css  - shop grid, product page, cart and checkout
+ */
