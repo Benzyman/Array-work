@@ -89,7 +89,8 @@ $vr_whatsapp = vr_whatsapp_url();
 		<span>&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
 		<span><?php esc_html_e( 'Prices in Nigerian Naira (₦) · Secure checkout', 'verry-rarre' ); ?></span>
 	</div>
-	<div class="vr-footer__giant" aria-hidden="true">VERRY RARRE</div>
+	<?php $vr_camo_tex = vr_mod( 'vr_camo_enabled' ) ? vr_mod( 'vr_camo_texture' ) : ''; ?>
+	<div class="vr-footer__giant<?php echo $vr_camo_tex ? ' vr-footer__giant--camo' : ''; ?>" aria-hidden="true"<?php echo $vr_camo_tex ? ' style="' . esc_attr( '--vr-camo: url("' . esc_url( $vr_camo_tex ) . '")' ) . '"' : ''; ?>>VERRY RARRE</div>
 </footer>
 
 <?php if ( $vr_whatsapp && vr_mod( 'vr_whatsapp_float' ) ) : ?>

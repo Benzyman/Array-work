@@ -439,6 +439,29 @@ body.vr-lock { overflow: hidden; }
 .vr-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 @media (min-width: 900px) { .vr-newsletter__inner { grid-template-columns: 1.2fr 1fr; } }
 
+/* Camo version: light band with the camo VRRE artwork bleeding off the edge.
+   multiply blends a white image background into the band, so a PNG or a JPG both work. */
+.vr-newsletter--camo { position: relative; overflow: hidden; background: var(--vr-white); color: var(--vr-black); border-top: 1.5px solid var(--vr-black); }
+.vr-newsletter--camo .vr-newsletter__inner { position: relative; z-index: 1; }
+.vr-newsletter__art { display: flex; justify-content: center; margin: -16px 0 24px; }
+.vr-newsletter__art img { width: min(560px, 92vw); mix-blend-mode: multiply; transform: rotate(-4deg); }
+.vr-newsletter--camo .vr-newsletter__text { color: var(--vr-muted); }
+.vr-newsletter--camo .vr-newsletter__form input[type="email"] { border-color: var(--vr-black); color: var(--vr-black); }
+.vr-newsletter--camo .vr-newsletter__form input::placeholder { color: var(--vr-muted); }
+.vr-newsletter--camo .vr-btn--light { background: var(--vr-black); color: var(--vr-white); border-color: var(--vr-black); }
+.vr-newsletter--camo .vr-btn--light:hover { background: var(--vr-white); color: var(--vr-black); }
+.vr-newsletter--camo .vr-newsletter__status { color: var(--vr-black); }
+@media (min-width: 900px) {
+	.vr-newsletter--camo { padding-block: clamp(96px, 12vw, 180px); }
+	.vr-newsletter__art {
+		position: absolute; top: 50%; right: -6vw; margin: 0;
+		transform: translateY(-50%); pointer-events: none;
+	}
+	.vr-newsletter__art img { width: 52vw; max-width: 900px; }
+	.vr-newsletter--camo .vr-newsletter__inner { grid-template-columns: 1fr; max-width: var(--vr-max); }
+	.vr-newsletter--camo .vr-newsletter__inner > * { max-width: 560px; }
+}
+
 /* 6. PAGES ---------------------------------------------------------------- */
 .vr-page { padding-block: clamp(32px, 5vw, 72px) var(--vr-section-gap); max-width: 980px; }
 .vr-page--wide,
@@ -531,6 +554,11 @@ body.vr-lock { overflow: hidden; }
 	color: #151515;
 	transform: translateY(14%);
 	user-select: none;
+}
+.vr-footer__giant--camo {
+	background: var(--vr-camo) center / 420px repeat;
+	-webkit-background-clip: text; background-clip: text;
+	color: transparent;
 }
 @media (min-width: 900px) {
 	.vr-footer__grid { grid-template-columns: 2fr 1fr 1fr 1fr; }

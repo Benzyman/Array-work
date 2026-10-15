@@ -27,7 +27,8 @@ verry-rarre/
 ├── docs/
 │   └── 01-plan.md            ← Stage 1: approach, design, hosting, roadmap
 ├── catalogue/
-│   ├── catalogue.md          ← product list + the info still needed from you
+│   ├── catalogue.md          ← product list, prices, import steps
+│   ├── products-import.csv   ← all products + sizes + prices, ready for Products > Import
 │   ├── images/               ← product photos, squared & web-optimised for upload
 │   └── originals/            ← your untouched original photos
 ├── preview/
@@ -61,7 +62,7 @@ verry-rarre/
             ├── css/shop.css  ← product grid, product page, cart, checkout
             ├── js/main.js    ← menu, search, filters, size guide, scroll effects
             ├── js/product.js ← turns Size/Colour drop-downs into buttons
-            └── images/       ← default logo + default homepage images
+            └── images/       ← default logo, homepage images, camo texture + camo VRRE
 ```
 
 ---
@@ -77,7 +78,7 @@ Go to **Appearance > Customize > Verry Rarre Theme**:
 | Show/hide homepage sections, headings, how many products | Homepage sections |
 | Lookbook images, brand story | Homepage: editorial & story |
 | WhatsApp number, email, Instagram/TikTok/X | Contact, WhatsApp & social |
-| Accent colour, footer logo, footer tagline | Brand colour & footer |
+| Accent colour, footer logo, footer tagline, camo graphics on/off + images | Brand colour & footer |
 | Shipping note on product pages | Shop & product pages |
 | Header logo | Site Identity > Logo |
 | Menu links | Appearance > Menus (locations: Main menu, Footer: Shop, Footer: Help) |
@@ -123,7 +124,7 @@ Open the `theme/verry-rarre` folder in VS Code.
 2. Zip `theme/verry-rarre`, then go to **Appearance > Themes > Add New > Upload Theme** and activate it.
 3. Click **Run starter setup** in the blue notice. It creates the About, Contact and Collections pages, plus draft Shipping & Returns and Terms pages, and switches the store to ₦.
 4. **Appearance > Customize > Verry Rarre Theme > Contact** — add your WhatsApp number.
-5. Add products (see `catalogue/catalogue.md`).
+5. Add products: import `catalogue/products-import.csv` (steps in `catalogue/catalogue.md`).
 
 ## Requirements
 WordPress 6.4+, PHP 8.0+, WooCommerce 8+. Fonts: Archivo + Space Mono (Google Fonts).

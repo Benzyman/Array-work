@@ -1,92 +1,55 @@
-# VERRY RARRE — product catalogue (draft)
+# VERRY RARRE — product catalogue
 
-Product names, categories and descriptions are **suggestions based on your photos**. Change anything. Each description only covers what's visible in the artwork, so add fabric, weight and fit yourself.
+| # | Product | Category | Colours | Price | Sizes |
+|---|---|---|---|---|---|
+| 1 | Live The Truth Zip Hoodie | Hoodies | Black | **₦40,000** | S, M, L, XL, XXL |
+| 2 | Plate Carrier Tee | T-Shirts | Black | **₦25,000** | S, M, L, XL, XXL |
+| 3 | Controversy Sell's Portrait Tee | T-Shirts | White | **₦25,000** | S, M, L, XL, XXL |
+| 4 | Warning Tee | T-Shirts | Black | **₦25,000** | S, M, L, XL, XXL |
+| 5 | VRRE Gothic Logo Tee (chest logo only) | T-Shirts | Black, White | **₦18,000** | S, M, L, XL, XXL |
 
-**From your store video (verryrarre.com.ng):** Warning tee = ₦17,000, "100% Cotton T-shirt, Heat press design". ❓ Do the other tees use the same fabric/print method and price?
+All of this is already filled in `products-import.csv`, ready for WooCommerce to import.
 
-**Still needed from you (marked ❓):** price in ₦, sizes, colours, stock per size, sale price (if any), and whether names are right.
+**Still open (❓):**
+- **Stock per size.** The CSV's `Stock` column is empty, so every size imports as "in stock" with no count. Put a number in a size's `Stock` cell before importing and WooCommerce will count it down with each order and show "Sold out" at 0.
+- **Photo files** for the Warning Tee (front and back) and the white Logo Tee. They came through as chat images only.
+- **Fabric.** "100% cotton, heat-press" comes from your current site for the Warning Tee. Is it the same for every tee? I'll add it to all the descriptions if so.
 
-The images in `images/` are your photos, squared and resized for the web. Nothing in the garments was changed. Your untouched originals are in `originals/`.
+## Images
+`images/` holds your photos, squared and resized for the web. The garments weren't altered. Untouched originals are in `originals/`.
 
----
+| Product | Main photo | Extra views |
+|---|---|---|
+| Hoodie | `live-the-truth-zip-hoodie-black-front.jpg` | `…-black-back.jpg`, `…-black-front-and-back.jpg` |
+| Plate Carrier Tee | `plate-carrier-tee-black-front.jpg` | — |
+| Portrait Tee | `controversy-portrait-tee-white-front.jpg` | — |
+| Warning Tee | ❓ file needed | ❓ back view |
+| Logo Tee | `vrre-logo-tee-black-front.jpg` | ❓ white version |
 
-## 1. Live The Truth Zip Hoodie
-| Field | Value |
-|---|---|
-| Category | Hoodies |
-| Colour | Black |
-| Main image | `live-the-truth-zip-hoodie-black-front.jpg` |
-| Extra views | `live-the-truth-zip-hoodie-black-back.jpg`, `live-the-truth-zip-hoodie-black-front-and-back.jpg` |
-| Description | Black zip-up hoodie. Periwinkle-blue gothic VRRE on the chest, LIVE THE TRUTH down the sleeve, and a distressed V.R.R.E with "verry rarre, controversy sell's" across the back. |
-| Price ₦ | ❓ |
-| Sale price ₦ | ❓ (optional) |
-| Sizes + stock | ❓ e.g. S: 5, M: 10, L: 10, XL: 5 |
-
-## 2. Plate Carrier Tee
-| Field | Value |
-|---|---|
-| Category | T-Shirts |
-| Colour | Black |
-| Main image | `plate-carrier-tee-black-front.jpg` |
-| Description | Black tee with a full-front green outline of a tactical plate-carrier vest, VRRE across the chest panel and a CNTRVSY SELLS patch. |
-| Price / sizes / stock | ❓ |
-| Back print? | ❓ (send a back photo if there is one) |
-
-## 3. Controversy Sell's Portrait Tee
-| Field | Value |
-|---|---|
-| Category | T-Shirts |
-| Colour | White |
-| Main image | `controversy-portrait-tee-white-front.jpg` |
-| Description | White tee with a large gothic VRRE wordmark above a black-and-white portrait print, finished with "controversy sell's" and a star detail. |
-| Price / sizes / stock | ❓ |
-
-## 4. VRRE Gothic Logo Tee
-| Field | Value |
-|---|---|
-| Category | T-Shirts |
-| Colours | Black (white logo) · **White (black logo)**, from your second batch of photos |
-| Main image | `vrre-logo-tee-black-front.jpg` (+ white version, file needed, see below) |
-| Description | Clean tee with the gothic VRRE wordmark on the left chest. |
-| Price / sizes / stock per colour | ❓ |
-| Same price for both colours? | ❓ |
-
-## 5. Warning Tee *(second batch + your store video)*
-| Field | Value |
-|---|---|
-| Name | **Warning tee** (as on verryrarre.com.ng) |
-| Category | T-Shirts |
-| Colour | Black |
-| Images | Front + back photo, front-only photo (files needed, see below) |
-| Description | **100% cotton T-shirt, heat-press design** (from your current store). Front: a weathered red-and-cream warning sign reading WARNING · VRRE · CONTROVERSY SELLS · NO TRESPASSING · RESTRICTED AREA. Back: a red-glow artwork of three figures under spiked flames, signed VERRY RARRE in red script. |
-| Price ₦ | **17,000** (from your current store) |
-| Sizes + stock | ❓ |
-
-## 6. Camo VRRE artwork *(second batch)*
-The gothic VRRE wordmark with a woodland-camo fill, on a plain background. ❓ **Is this a product** (e.g. a camo-logo tee or hoodie, so send the garment photo), **or a logo/print file** for the site?
-
-## 7. Blank white image *(second batch)*
-This one came through completely white. It may be white artwork on a transparent background (like a logo file). ❓ Please resend it as the original file and tell me what it is.
+The **camo VRRE** artwork isn't a product. It's used as a design graphic: behind the newsletter signup, and as the fill of the giant footer wordmark. You can swap it in **Appearance > Customize > Verry Rarre Theme > Brand colour & footer**.
 
 ---
 
-## Photo files still needed
-Photos from the second batch were visible in our chat but didn't arrive as files I can put in the project. Please add them in one of these ways:
-1. Upload them to the GitHub repo (`verry-rarre/catalogue/originals/`), or
-2. Upload them straight into WordPress later (**Media > Add New**). WooCommerce uses them from there.
+## Import all products at once (≈10 minutes)
 
-**Photo tips:** square or near-square, at least 1200px, plain light background, same angle for all products. Name files like `warning-sign-tee-black-front.jpg`.
+1. **Products > Attributes.** Create **Size** and **Colour** (do this once). It makes the shop filters work properly.
+2. **Media > Add New.** Upload every photo from `catalogue/images/`. Keep the file names as they are: the import finds the photos by name.
+3. **Optional:** open `products-import.csv` in Excel or Google Sheets, fill the `Stock` column on the size rows, and save it as CSV.
+4. **Products > All Products > Import.** Choose `products-import.csv` and click **Continue**. Leave the column matching as it is, then click **Run the importer**.
+5. Check one product. If a photo is missing, open the product and set it under **Product image** / **Product gallery** on the right.
+6. Add the Warning Tee and white Logo Tee photos by hand once you have them: **Products > edit product > Product image**.
 
----
+**What the CSV rows mean:**
+- A `variable` row is the product itself.
+- Each `variation` row is one size/colour combination with its own price and stock.
+- SKUs (stock codes) follow the pattern `VR-LOGO-TEE-WHT-M` = logo tee, white, medium.
 
-## Adding a product in WooCommerce (no code)
-1. **Products > Add New**.
-2. **Title** = product name. Put the long description in the big text box and a 1–2 line summary in **Product short description**.
-3. **Product data** box → choose **Variable product** (for sizes/colours).
-4. **Attributes** tab → add **Size** (and **Colour**), tick **Used for variations**, then **Save attributes**.
-   *Tip:* create Size and Colour once under **Products > Attributes** so the shop filters can use them.
-5. **Variations** tab → **Generate variations**. For each one: tick **Manage stock?**, enter **Regular price** (₦), optional **Sale price**, and **Stock quantity**.
-6. Right column: **Product categories** (tick T-Shirts/Hoodies), **Product image** (main photo), **Product gallery** (extra views; the first gallery image shows when a shopper hovers over the product).
-7. **Publish**.
+## Adding a single product later (no spreadsheet)
+1. **Products > Add New.** Enter the name, then put a short summary in **Product short description**.
+2. **Product data → Variable product.**
+3. **Attributes tab** → add **Size** (and **Colour**) → tick **Used for variations** → **Save attributes**.
+4. **Variations tab** → **Generate variations** → for each one, enter **Regular price** (₦), tick **Manage stock?** and enter the quantity.
+5. Right column: tick a category, then set the **Product image** and **Product gallery** (the first gallery photo shows when shoppers hover over the product).
+6. **Publish.**
 
-Once you send prices, sizes and stock, I'll also prepare a CSV file so you can import all products at once (**Products > Import**).
+**Sale price:** open the variation and fill **Sale price**. The theme then shows the old price crossed out next to a highlighted sale price, with a "Sale" tag.

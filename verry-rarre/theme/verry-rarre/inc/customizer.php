@@ -90,6 +90,11 @@ function vr_defaults() {
 		'vr_shipping_returns_text' => "Delivery across Nigeria. Delivery cost and timing are shown at checkout.\nReturns and exchanges: see our Shipping & Returns page for the full policy.",
 		'vr_footer_logo'           => $img . 'logo-white.png',
 		'vr_footer_text'           => "Graphic streetwear. Verry rarre, controversy sell's.",
+
+		// Camo graphics.
+		'vr_camo_enabled'          => true,
+		'vr_camo_art'              => $img . 'camo-vrre.png',
+		'vr_camo_texture'          => $img . 'camo.jpg',
 	);
 
 	return $defaults;
@@ -197,6 +202,9 @@ function vr_customize_register( $wp_customize ) {
 	$add( 'vr_color_accent', 'vr_brand', __( 'Accent colour', 'verry-rarre' ), 'color', array( 'description' => __( 'Used sparingly: sale prices, highlights, focus outlines.', 'verry-rarre' ) ) );
 	$add( 'vr_footer_logo', 'vr_brand', __( 'Footer logo (light version for the black footer)', 'verry-rarre' ), 'image' );
 	$add( 'vr_footer_text', 'vr_brand', __( 'Footer tagline', 'verry-rarre' ), 'textarea' );
+	$add( 'vr_camo_enabled', 'vr_brand', __( 'Use camo graphics', 'verry-rarre' ), 'checkbox', array( 'description' => __( 'Camo VRRE behind the newsletter signup, camo fill in the giant footer wordmark.', 'verry-rarre' ) ) );
+	$add( 'vr_camo_art', 'vr_brand', __( 'Camo VRRE artwork (newsletter)', 'verry-rarre' ), 'image', array( 'description' => __( 'Transparent PNG or a white background both work.', 'verry-rarre' ) ) );
+	$add( 'vr_camo_texture', 'vr_brand', __( 'Camo texture (footer wordmark fill)', 'verry-rarre' ), 'image', array( 'description' => __( 'A seamless pattern image.', 'verry-rarre' ) ) );
 
 	// Announcement.
 	$add( 'vr_announcement_enabled', 'vr_announcement', __( 'Show announcement bar', 'verry-rarre' ), 'checkbox' );

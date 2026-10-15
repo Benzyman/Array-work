@@ -13,8 +13,14 @@ if ( ! vr_mod( 'vr_show_newsletter' ) ) {
 
 // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $vr_status = isset( $_GET['vr_subscribed'] ) ? sanitize_key( wp_unslash( $_GET['vr_subscribed'] ) ) : '';
+$vr_camo   = vr_mod( 'vr_camo_enabled' ) ? vr_mod( 'vr_camo_art' ) : '';
 ?>
-<section class="vr-newsletter" id="newsletter" aria-labelledby="vr-newsletter-title">
+<section class="vr-newsletter<?php echo $vr_camo ? ' vr-newsletter--camo' : ''; ?>" id="newsletter" aria-labelledby="vr-newsletter-title">
+	<?php if ( $vr_camo ) : ?>
+		<div class="vr-newsletter__art" aria-hidden="true">
+			<img src="<?php echo esc_url( $vr_camo ); ?>" alt="" loading="lazy" decoding="async">
+		</div>
+	<?php endif; ?>
 	<div class="vr-container vr-newsletter__inner">
 		<div>
 			<h2 class="vr-newsletter__title" id="vr-newsletter-title"><?php echo esc_html( vr_mod( 'vr_newsletter_title' ) ); ?></h2>
